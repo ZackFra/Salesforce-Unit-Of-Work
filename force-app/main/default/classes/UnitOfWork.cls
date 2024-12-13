@@ -3,7 +3,7 @@
  * @author Zackary Frazier
  * @since 12/13/2024
  */
-public without sharing class UnitOfWork implements IUnitOfWork {
+public without sharing virtual class UnitOfWork implements IUnitOfWork {
     List<SObject> cleanRecords = new List<SObject>();
     List<SObject> deletedRecords = new List<SObject>();
     List<SObject> undeletedRecords = new List<SObject>();
@@ -103,7 +103,7 @@ public without sharing class UnitOfWork implements IUnitOfWork {
      * @description Commit clean and dirty records, rolling back if an error occurs
      * @throws Any errors
      */
-    public void commitWork() {
+    public virtual void commitWork() {
         try {
             commitClean();
             commitDirty();
@@ -115,17 +115,14 @@ public without sharing class UnitOfWork implements IUnitOfWork {
     
     private void commitClean() {
         if(!cleanRecords.isEmpty()) {
-            this.cleanRecords.sort();
             this.dml.onUpsert(cleanRecords, allOrNone, access);
             this.cleanRecords.clear();
         }
         if(!deletedRecords.isEmpty()) {
-            this.deletedRecords.sort();
             this.dml.onDelete(deletedRecords, allOrNone, access);
             this.deletedRecords.clear();
         }
         if(!undeletedRecords.isEmpty()) {
-            this.undeletedRecords.sort();
             this.dml.onUndelete(undeletedRecords, allOrNone, access);
             this.undeletedRecords.clear();
         }
@@ -139,7 +136,6 @@ public without sharing class UnitOfWork implements IUnitOfWork {
        for(DirtyRecord dr : this.dirtyRecords) {
        	    records.add(dr.record);
        }
-       records.sort();
        this.dml.onUpsert(records, allOrNone, access);
        List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
        for(Integer i = 0; i < records.size(); i++) {
