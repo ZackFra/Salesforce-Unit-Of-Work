@@ -101,6 +101,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     
     /**
      * @description Commit clean and dirty records, rolling back if an error occurs
+     * @return `WorkResults`
      * @throws Any errors
      */
     public virtual WorkResults commitWork() {

@@ -7,6 +7,9 @@
 public with sharing class StubbedUnitOfWork extends UnitOfWork implements IUnitOfWork {
 
     Boolean isSuccess = false;
+    /**
+     * @description Designates that a call to commitWork should throw a DmlException
+     */
     public void shouldFail() {
         this.isSuccess = true;
     }

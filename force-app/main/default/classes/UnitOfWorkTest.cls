@@ -56,6 +56,9 @@ private class UnitOfWorkTest {
         Test.startTest();
         uow.commitWork();
         Test.stopTest();
+
+        Contact updatedContact = [SELECT AccountId FROM Contact];
+        Assert.isNotNull(updatedContact.AccountId, 'Expected AccountId to be set');
     }
     
     @IsTest
@@ -121,7 +124,7 @@ private class UnitOfWorkTest {
         uow.commitWork();
         Integer dmlLimits = Limits.getDmlStatements();
         Test.stopTest();
-        Assert.areEqual(2, dmlLimits);
+        Assert.areEqual(2, dmlLimits, 'Expected only two DML statements');
     }
     
     @IsTest
@@ -141,6 +144,11 @@ private class UnitOfWorkTest {
         uow.commitWork();
         Test.stopTest();
         
+        Integer numberOfAccounts = [
+            SELECT COUNT()
+            FROM Account
+        ];
+        Assert.areEqual(2, numberOfAccounts, 'Expected two accounts');
         
     }
 
