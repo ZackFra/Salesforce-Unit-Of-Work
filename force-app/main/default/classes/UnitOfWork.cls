@@ -1,4 +1,9 @@
-public class UnitOfWork implements IUnitOfWork {
+/**
+ * @description Unit of work implementation 
+ * @author Zackary Frazier
+ * @since 12/13/2024
+ */
+public without sharing class UnitOfWork implements IUnitOfWork {
     List<SObject> cleanRecords = new List<SObject>();
     List<SObject> deletedRecords = new List<SObject>();
     List<SObject> undeletedRecords = new List<SObject>();
@@ -6,34 +11,87 @@ public class UnitOfWork implements IUnitOfWork {
     List<DirtyRecord> dirtyRecords = new List<DirtyRecord>();
     Boolean allOrNone;
     AccessLevel access;
-    
-    public UnitOfWork(Boolean allOrNone, AccessLevel access) {
+
+    IUnitOfWorkDML dml;
+    SavePoint sp;
+
+    /**
+     * @description Test constructor, for stubbing the dml
+     * @param allOrNone `Boolean`
+     * @param access `AccessLevel`
+     * @param dml `IUnitOfWorkDML`
+     */
+    public UnitOfWork(Boolean allOrNone, AccessLevel access, IUnitOfWorkDML dml) {
+        this.sp = Database.setSavepoint();
+        if(dml != null) {
+            this.dml = dml;
+        } else {
+            this.dml = new UnitOfWorkDML();
+        }
         this.allOrNone = allOrNone;
         this.access = access;
     }
     
-    public UnitOfWork() {
-        this(true, AccessLevel.USER_MODE);
+    /**
+     * @description Constructor all or none and access level
+     * @param allOrNone `Boolean`
+     * @param access `AccessLevel`
+     */
+    public UnitOfWork(Boolean allOrNone, AccessLevel access) {
+        this(allOrNone, access, null);
     }
     
+    /**
+     * @description Base constructor
+     */
+    public UnitOfWork() {
+        this(true, AccessLevel.USER_MODE, null);
+    }
+    
+    /**
+     * @description Register an inserted or updated record
+     * @param record `SObject`
+     */
     public void registerClean(SObject record) {
         this.cleanRecords.add(record);
     }
     
+    /**
+     * @description Register a deleted recod
+     * @param record `SObject`
+     */
     public void registerDelete(SObject record) {
         this.deletedRecords.add(record);
     }
     
+    /**
+     * @description Register an undeleted recod
+     * @param record `SObject`
+     */
     public void registerUndelete(SObject record) {
         this.undeletedRecords.add(record);
     }
     
+    /**
+     * @description Register a dirty update (insert / update dependent on a record that does not exist yet)
+     * @param parentRecord `SObject`
+     * @param childRecord `SObject`
+     * @param field `SObjectField`
+     * @return  `Relationship`
+     */
     public Relationship registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
         DirtyRecord dirtyParentRecord = new DirtyRecord(parentRecord);
         this.dirtyRecords.add(dirtyParentRecord);
         return registerDirty(dirtyParentRecord, childRecord, field);
     }
     
+    /**
+     * @description Register a dirty update, for an already registered parent recod
+     * @param dirtyParentRecord `DirtyRecord`
+     * @param childRecord `SObject`
+     * @param field `SObjectField`
+     * @return  `Relationship`
+     */
     public Relationship registerDirty(DirtyRecord dirtyParentRecord, SObject childRecord, SObjectField field) {
         DirtyRecord dirtyChildRecord = new DirtyRecord(childRecord, field);
         dirtyParentRecord.children.add(dirtyChildRecord);
@@ -41,13 +99,16 @@ public class UnitOfWork implements IUnitOfWork {
         return parentChildRel;
     }
     
+    /**
+     * @description Commit clean and dirty records, rolling back if an error occurs
+     * @throws Any errors
+     */
     public void commitWork() {
-        System.SavePoint sp = Database.setSavePoint();
         try {
             commitClean();
             commitDirty();
         } catch(Exception e) {
-            Database.rollback(sp);
+            Database.rollback(this.sp);
             throw e;
         }
     }
@@ -55,17 +116,17 @@ public class UnitOfWork implements IUnitOfWork {
     private void commitClean() {
         if(!cleanRecords.isEmpty()) {
             this.cleanRecords.sort();
-            Database.upsert(cleanRecords, allOrNone, access);
+            this.dml.onUpsert(cleanRecords, allOrNone, access);
             this.cleanRecords.clear();
         }
         if(!deletedRecords.isEmpty()) {
             this.deletedRecords.sort();
-            Database.delete(deletedRecords, allOrNone, access);
+            this.dml.onDelete(deletedRecords, allOrNone, access);
             this.deletedRecords.clear();
         }
         if(!undeletedRecords.isEmpty()) {
             this.undeletedRecords.sort();
-            Database.undelete(undeletedRecords, allOrNone, access);
+            this.dml.onUndelete(undeletedRecords, allOrNone, access);
             this.undeletedRecords.clear();
         }
     }
@@ -79,7 +140,7 @@ public class UnitOfWork implements IUnitOfWork {
        	    records.add(dr.record);
        }
        records.sort();
-       Database.upsert(records, allOrNone, access);
+       this.dml.onUpsert(records, allOrNone, access);
        List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
        for(Integer i = 0; i < records.size(); i++) {
             DirtyRecord dirtyParentRecord = this.dirtyRecords[i];
@@ -100,5 +161,4 @@ public class UnitOfWork implements IUnitOfWork {
         }
         return newDirtyParentRecords;
     }
-    
 }

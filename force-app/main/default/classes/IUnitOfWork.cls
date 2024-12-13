@@ -1,3 +1,8 @@
+/**
+ * @description UnitOfWork interface
+ * @author Zackary Frazier
+ * @since 12/13/2024
+ */
 public interface IUnitOfWork {
     void registerClean(SObject record);
     void registerDelete(SObject record);

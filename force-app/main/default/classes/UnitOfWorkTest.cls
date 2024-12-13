@@ -12,6 +12,14 @@ private class UnitOfWorkTest {
         Test.startTest();
         uow.commitWork();
         Test.stopTest();
+
+        Integer numberOfAccounts = [
+            SELECT COUNT()
+            FROM Account
+            WHERE Name = 'Test Account'
+        ];
+
+        Assert.areEqual(1, numberOfAccounts, 'Expected account to be created');
         
     }
     
@@ -83,15 +91,15 @@ private class UnitOfWorkTest {
         ];
         
         Account examine = acct;
-        Assert.areEqual('Test Account 1', examine.Name);
+        Assert.areEqual('Test Account 1', examine.Name, 'Expected name to match');
         examine = examine.ChildAccounts[0];
-        Assert.areEqual('Test Account 2', examine.Name);
+        Assert.areEqual('Test Account 2', examine.Name, 'Expected name to match');
         examine = examine.ChildAccounts[0];
-        Assert.areEqual('Test Account 3', examine.Name);
+        Assert.areEqual('Test Account 3', examine.Name, 'Expected name to match');
         examine = examine.ChildAccounts[0];
-        Assert.areEqual('Test Account 4', examine.Name);
+        Assert.areEqual('Test Account 4', examine.Name, 'Expected name to match');
         examine = examine.ChildAccounts[0];
-        Assert.areEqual('Test Account 5', examine.Name);
+        Assert.areEqual('Test Account 5', examine.Name, 'Expected name to match');
     }
     
     @IsTest
@@ -113,7 +121,7 @@ private class UnitOfWorkTest {
         uow.commitWork();
         Integer dmlLimits = Limits.getDmlStatements();
         Test.stopTest();
-        Assert.areEqual(3, dmlLimits);
+        Assert.areEqual(2, dmlLimits);
     }
     
     @IsTest
@@ -134,5 +142,60 @@ private class UnitOfWorkTest {
         Test.stopTest();
         
         
+    }
+
+    @IsTest
+    static void ensureRollbackIsCalled() {
+        StubbedUnitOfWorkDML dml = new StubbedUnitOfWorkDML();
+        dml.shouldFail();
+
+        UnitOfWork uow = new UnitOfWork(true, AccessLevel.USER_MODE, (IUnitOfWorkDML) dml);
+
+
+        Account acct = new Account(Name = 'Test Account');
+        uow.registerClean(acct);
+
+        Boolean isExceptionThrown = false;
+        try {
+            uow.commitWork();
+        } catch(DmlException e) {
+            isExceptionThrown = true;
+        }
+
+        Assert.isTrue(isExceptionThrown, 'Expected exception to be thrown');
+    }
+
+    @IsTest
+    static void ensureHalfwayErrorTriggersFullRollback() {
+        UnitOfWork uow = new UnitOfWork();
+
+        Account acct = new Account(Name = 'Test Account 1');
+        uow.registerClean(acct);
+        uow.commitWork();
+
+        acct.Name = 'Test Account 2';
+        Account acct2 = acct.clone(true);
+        acct2.Name = 'Test Account 3';
+
+        uow.registerClean(acct);
+        uow.registerClean(acct2);
+
+        Boolean isExceptionThrown = false;
+        // cannot use Test.startTest and Test.stopTest,
+        // it'll reset the savepoint here
+        try {
+            uow.commitWork();
+        } catch(Exception e) {
+            isExceptionThrown = true;
+        }
+
+        Assert.isTrue(isExceptionThrown, 'Expected exception to be thrown');
+
+        Integer numberOfAccounts = [
+            SELECT COUNT()
+            FROM Account
+        ];
+
+        Assert.areEqual(0, numberOfAccounts, 'Expected full rollback');
     }
 }
