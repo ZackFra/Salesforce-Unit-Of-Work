@@ -103,40 +103,43 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @description Commit clean and dirty records, rolling back if an error occurs
      * @throws Any errors
      */
-    public virtual void commitWork() {
+    public virtual WorkResults commitWork() {
         try {
-            commitClean();
-            commitDirty();
+            WorkResults wr = new WorkResults();
+            wr = commitClean(wr);
+            wr = commitDirty(wr);
+            return wr;
         } catch(Exception e) {
             Database.rollback(this.sp);
             throw e;
         }
     }
     
-    private void commitClean() {
+    private WorkResults commitClean(WorkResults wr) {
         if(!cleanRecords.isEmpty()) {
-            this.dml.onUpsert(cleanRecords, allOrNone, access);
+            wr.upsertResults.addAll(this.dml.onUpsert(cleanRecords, allOrNone, access));
             this.cleanRecords.clear();
         }
         if(!deletedRecords.isEmpty()) {
-            this.dml.onDelete(deletedRecords, allOrNone, access);
+            wr.deleteResults.addall(this.dml.onDelete(deletedRecords, allOrNone, access));
             this.deletedRecords.clear();
         }
         if(!undeletedRecords.isEmpty()) {
-            this.dml.onUndelete(undeletedRecords, allOrNone, access);
+            wr.undeleteResults.addAll(this.dml.onUndelete(undeletedRecords, allOrNone, access));
             this.undeletedRecords.clear();
         }
+        return wr;
     }
     
-    private void commitDirty() {
+    private WorkResults commitDirty(WorkResults wr) {
        if(this.dirtyRecords.isEmpty()) {
-           return;
+           return wr;
        }
        List<SObject> records = new List<SObject>();
        for(DirtyRecord dr : this.dirtyRecords) {
        	    records.add(dr.record);
        }
-       this.dml.onUpsert(records, allOrNone, access);
+       wr.upsertResults.addAll(this.dml.onUpsert(records, allOrNone, access));
        List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
        for(Integer i = 0; i < records.size(); i++) {
             DirtyRecord dirtyParentRecord = this.dirtyRecords[i];
@@ -145,7 +148,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
            	childDirtyRecords.addAll(connectedChildRecords);
         }
         this.dirtyRecords = childDirtyRecords;
-        commitDirty();
+        return commitDirty(wr);
     }
     
     private List<DirtyRecord> connectDirtyChildRecords(DirtyRecord dirtyParentRecord, SObject newRecord) {
