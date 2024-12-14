@@ -18,7 +18,9 @@ public with sharing class SaveResultsService {
             if(record.Id != null) {
                 mockedResult = new DatabaseUpsertResult(record.Id);
             } else {
-                mockedResult = new DatabaseUpsertResult(record.getSObjectType());
+                Id fakeId = fflib_IdGenerator.generate(record.getSObjectType());
+                record.Id = fakeId;
+                mockedResult = new DatabaseUpsertResult(fakeId, true);
             }
 
             Database.UpsertResult result = (Database.UpsertResult) JSON.deserialize(JSON.serialize(mockedResult), Database.UpsertResult.class);
@@ -104,7 +106,7 @@ public with sharing class SaveResultsService {
         public List<Database.Error> errors;
 
         /**
-         * @description Constructor for update DatabaseUpsertResult
+         * @description Constructor for DatabaseUpsertResult
          * @param recordId `Id`
          */
         public DatabaseUpsertResult(Id recordId) {
@@ -115,14 +117,12 @@ public with sharing class SaveResultsService {
         }
 
         /**
-         * @description Constructor for create DatabaseUpsertResult 
+         * @description Constructor  DatabaseUpsertResult 
          * @param sot `SObjectType`
          */
-        public DatabaseUpsertResult(SObjectType sot) {
-            this.id = fflib_IdGenerator.generate(sot);
-            this.success = true;
-            this.created = true;
-            this.errors = new List<Database.Error>();
+        public DatabaseUpsertResult(Id recordId, Boolean created) {
+            this(recordId);
+            this.created = created;
         }
     }
 }
