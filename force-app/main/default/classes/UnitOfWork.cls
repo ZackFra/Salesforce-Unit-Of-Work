@@ -100,7 +100,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @return `WorkResults`
      * @throws Any errors
      */
-    public virtual WorkResults commitWork() {
+    public WorkResults commitWork() {
         try {
             WorkResults wr = new WorkResults();
             wr = commitClean(wr);
