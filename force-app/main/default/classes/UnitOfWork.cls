@@ -23,11 +23,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      */
     public UnitOfWork(Boolean allOrNone, AccessLevel access, IUnitOfWorkDML dml) {
         this.sp = Database.setSavepoint();
-        if(dml != null) {
-            this.dml = dml;
-        } else {
-            this.dml = new UnitOfWorkDML();
-        }
+        this.dml = dml;
         this.allOrNone = allOrNone;
         this.access = access;
     }
@@ -38,14 +34,14 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param access `AccessLevel`
      */
     public UnitOfWork(Boolean allOrNone, AccessLevel access) {
-        this(allOrNone, access, null);
+        this(allOrNone, access, new UnitOfWorkDML());
     }
     
     /**
      * @description Base constructor
      */
     public UnitOfWork() {
-        this(true, AccessLevel.USER_MODE, null);
+        this(true, AccessLevel.USER_MODE, new UnitOfWorkDML());
     }
     
     /**
