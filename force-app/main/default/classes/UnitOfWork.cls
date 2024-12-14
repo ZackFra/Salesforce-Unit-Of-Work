@@ -21,7 +21,8 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param access `AccessLevel`
      * @param dml `IUnitOfWorkDML`
      */
-    public UnitOfWork(Boolean allOrNone, AccessLevel access, IUnitOfWorkDML dml) {
+    @TestVisible
+    private UnitOfWork(Boolean allOrNone, AccessLevel access, IUnitOfWorkDML dml) {
         this.sp = Database.setSavepoint();
         this.dml = dml;
         this.allOrNone = allOrNone;
