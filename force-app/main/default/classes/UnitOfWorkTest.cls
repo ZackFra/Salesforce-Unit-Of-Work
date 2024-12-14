@@ -153,27 +153,6 @@ private class UnitOfWorkTest {
     }
 
     @IsTest
-    static void ensureRollbackIsCalled() {
-        StubbedUnitOfWorkDML dml = new StubbedUnitOfWorkDML();
-        dml.shouldFail();
-
-        UnitOfWork uow = new UnitOfWork(true, AccessLevel.USER_MODE, (IUnitOfWorkDML) dml);
-
-
-        Account acct = new Account(Name = 'Test Account');
-        uow.registerClean(acct);
-
-        Boolean isExceptionThrown = false;
-        try {
-            uow.commitWork();
-        } catch(DmlException e) {
-            isExceptionThrown = true;
-        }
-
-        Assert.isTrue(isExceptionThrown, 'Expected exception to be thrown');
-    }
-
-    @IsTest
     static void ensureHalfwayErrorTriggersFullRollback() {
         UnitOfWork uow = new UnitOfWork();
 

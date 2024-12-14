@@ -6,23 +6,19 @@
 @IsTest
 public with sharing class StubbedUnitOfWork extends UnitOfWork implements IUnitOfWork {
 
-    Boolean isSuccess = false;
+
     /**
      * @description Designates that a call to commitWork should throw a DmlException
      */
     public void shouldFail() {
-        this.isSuccess = true;
+        StubbedUnitOfWorkDML dml = (StubbedUnitOfWorkDML) this.dml;
+        dml.shouldFail();
     }
 
     /**
-     * @description Does nothing, for unit tests
-     * @return  `void`
+     * @description Constructor for stubbed unit of work
      */
-    @SuppressWarnings('PMD.EmptyStatementBlock')
-    public override WorkResults commitWork() {
-        if(!isSuccess) {
-            throw new DmlException('Test failure');
-        }
-        return new WorkResults();
+    public StubbedUnitOfWork() {
+        super(true, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
     }
 }

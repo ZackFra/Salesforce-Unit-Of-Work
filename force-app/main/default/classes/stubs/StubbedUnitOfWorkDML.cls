@@ -1,5 +1,6 @@
 @IsTest
 public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
+    SaveResultsService saveResultsSvc = new SaveResultsService();
     Boolean isSuccess = true;
 
     /**
@@ -21,7 +22,7 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
         if(!this.isSuccess) {
             throw new DmlException('Set to failed');
         }
-        return new List<Database.UpsertResult>();
+        return saveResultsSvc.upsertResults(records);
     }
 
     /**
@@ -36,7 +37,7 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
         if(!this.isSuccess) {
             throw new DmlException('Set to failed');
         }
-        return new List<Database.DeleteResult>();
+        return saveResultsSvc.deleteResults(records);
     }
 
     /**
@@ -51,6 +52,6 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
         if(!this.isSuccess) {
             throw new DmlException('Set to failed');
         }
-        return new List<Database.UndeleteResult>();
+        return saveResultsSvc.undeleteResults(records);
     }
 }

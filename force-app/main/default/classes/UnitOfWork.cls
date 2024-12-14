@@ -12,7 +12,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     Boolean allOrNone;
     AccessLevel access;
 
-    IUnitOfWorkDML dml;
+    protected IUnitOfWorkDML dml;
     SavePoint sp;
 
     /**
