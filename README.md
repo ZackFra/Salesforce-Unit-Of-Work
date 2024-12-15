@@ -78,3 +78,5 @@ Allows for unit testing. Replaces the DML operations performed in the UnitOfWork
 
 ## StubbedUnitOfWorkDML
 Used to stub DML interactions. Produces approprate save results for the commitWork method based on whether the DML operation is meant to be a success or failure, and also on upsert, sets created based on whether the upserted record has an id or not.
+
+NOTE: though it does support allOrNone being true or false, when false, it asumes the entire transaction failed an all save results are treated as failures when produced.
