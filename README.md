@@ -85,4 +85,4 @@ NOTE: though it does support allOrNone being true or false, when allOrNone is fa
 
 # Notes
 
-If you create the UnitOfWork before calling `Test.startTest()`, it will cause issues with the savepoint in the case of rollbacks. To avoid this issue, ensure that the UnitOfWork is instantiated after calling `Test.startTest()` and before calling `Test.stopTest()`.
+When testing, if you create the UnitOfWork before calling `Test.startTest()`, it will cause issues with the savepoint in the case of rollbacks. To avoid this issue, ensure that the UnitOfWork is instantiated after calling `Test.startTest()` and before calling `Test.stopTest()`.
