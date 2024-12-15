@@ -53,7 +53,7 @@ Can be called multiple times. Upon commit, all enqueued records will be cleared 
 #### resetSavepoint()
 Release the previously created savepoint and create a new one at the current point in execution.
 
-### WorkResults
+#### WorkResults
 Wrapper for the results of a commit. Has three properties
 * List\<Database.UpsertResult\> upsertResults
 * List\<Database.DeleteResult\> deleteResults
