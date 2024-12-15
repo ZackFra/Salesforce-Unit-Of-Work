@@ -108,11 +108,13 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     
     private WorkResults commitDeletesAndUndeletes(WorkResults wr) {
         if(!deletedRecords.isEmpty()) {
-            wr.deleteResults.addall(this.dml.onDelete(deletedRecords, allOrNone, access));
+            List<Database.DeleteResult> deleteResults = this.dml.onDelete(deletedRecords, allOrNone, access);
+            wr.deleteResults.addall(deleteResults);
             this.deletedRecords.clear();
         }
         if(!undeletedRecords.isEmpty()) {
-            wr.undeleteResults.addAll(this.dml.onUndelete(undeletedRecords, allOrNone, access));
+            List<Database.UndeleteResult> undeleteResults = this.dml.onUndelete(undeletedRecords, allOrNone, access);
+            wr.undeleteResults.addAll(undeleteResults);
             this.undeletedRecords.clear();
         }
         return wr;
