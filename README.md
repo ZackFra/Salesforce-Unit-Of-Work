@@ -33,6 +33,12 @@ uow.commitWork();
 
 ### Methods
 
+#### (Constructor) UnitOfWork()
+Instantiates a new UnitOfWork with USER_MODE AccessLevel and allOrNone set to true.
+
+#### (Constructor) UnitOfWork(Boolean allOrNone, AccessLevel access)
+Instantiates a new UnitOfWork with the specified AccessLevel and allOrNone setting.
+
 #### void registerClean(SObject record)
 Cleanly register a record for upsert.
 
