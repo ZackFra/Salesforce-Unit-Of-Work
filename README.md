@@ -12,7 +12,7 @@ Ex.
 ```
 
 // savepoint created here on instantiation
-UnitOfWork uow = new UnitOfWork();
+IUnitOfWork uow = new UnitOfWork();
 
 // parent account
 Account acct1 = new Account(Name = 'Account 1');
