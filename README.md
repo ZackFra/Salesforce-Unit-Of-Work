@@ -45,7 +45,7 @@ Cleanly register a record for undeletion.
 #### void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field)
 Register records such that the parent record will be upserted first, then the child record, connected to the parent record via the id field passed in. 
 
-You can use the same parent record multiple times, this unit of work will remember which records have already been registered. Further, you can use a registered child record as a new parent record. Also the parent record may be a record that was previously registered via registerClean.
+You can use the same parent record multiple times, this unit of work will remember which records have already been registered. Further, you can use a registered child record as a new parent record. The parent record may be a record that was previously registered via registerClean.
 
 #### WorkResults commitWork()
 Commits all registered upserts, deletes, and undeletes to the database. Will rollback to the last savepoint on exception. Will re-throw the exception post-rollback. In an ideal world, this savepoint the one created when the UoW was created, but I understand that there are strange scenarios.
