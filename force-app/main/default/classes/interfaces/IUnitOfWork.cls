@@ -32,4 +32,8 @@ public interface IUnitOfWork {
      * @return  `WorkResults`
      */
     WorkResults commitWork();
+    /**
+     * @description Reset the savepoint
+     */
+    void resetSavepoint();
 }
