@@ -132,10 +132,8 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
        wr.upsertResults.addAll(upsertResults);
        List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
 
-       for(Integer i = this.cleanRecords.size(); i < allRecords.size(); i++) {
-            DirtyRecord dirtyParentRecord = this.dirtyRecords[i];
-            SObject record = allRecords[i];
-           	List<DirtyRecord> connectedChildRecords = connectDirtyChildRecords(dirtyParentRecord, record);
+       for(DirtyRecord dirtyParentRecord : this.dirtyRecords) {
+           	List<DirtyRecord> connectedChildRecords = connectDirtyChildRecords(dirtyParentRecord);
            	childDirtyRecords.addAll(connectedChildRecords);
         }
         this.cleanRecords.clear();
@@ -147,12 +145,13 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         List<SObject> allRecords = new List<SObject>();
         allRecords.addAll(this.cleanRecords);
         for(DirtyRecord dr : this.dirtyRecords) {
-                allRecords.add(dr.record);
+            allRecords.add(dr.record);
         }
         return allRecords;
     }
     
-    private List<DirtyRecord> connectDirtyChildRecords(DirtyRecord dirtyParentRecord, SObject newRecord) {
+    private List<DirtyRecord> connectDirtyChildRecords(DirtyRecord dirtyParentRecord) {
+        SObject newRecord = dirtyParentRecord.record;
         List<DirtyRecord> dirtyChildRecords = dirtyParentRecord.children;
         List<DirtyRecord> newDirtyParentRecords = new List<DirtyRecord>();
         for(DirtyRecord childRecord : dirtyChildRecords) {
