@@ -6,6 +6,12 @@
 @IsTest
 public with sharing class StubbedUnitOfWork extends UnitOfWork {
 
+    /**
+     * @description Constructor for stubbed unit of work
+     */
+    public StubbedUnitOfWork() {
+        super(true, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
+    }
 
     /**
      * @description Designates that a call to commitWork should throw a DmlException
@@ -13,12 +19,5 @@ public with sharing class StubbedUnitOfWork extends UnitOfWork {
     public void shouldFail() {
         StubbedUnitOfWorkDML dml = (StubbedUnitOfWorkDML) this.dml;
         dml.shouldFail();
-    }
-
-    /**
-     * @description Constructor for stubbed unit of work
-     */
-    public StubbedUnitOfWork() {
-        super(true, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
     }
 }
