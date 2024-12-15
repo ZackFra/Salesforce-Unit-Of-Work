@@ -52,6 +52,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      */
     public void registerClean(SObject record) {
         this.cleanRecords.add(record);
+        this.dirtyRecordByRecord.put(record, new DirtyRecord(record));
     }
     
     /**
