@@ -82,3 +82,7 @@ Allows for unit testing. Replaces the DML operations performed in the UnitOfWork
 Used to stub DML interactions. Produces approprate save results for the commitWork method based on whether the DML operation is meant to be a success or failure, and also on upsert, sets created based on whether the upserted record has an id or not.
 
 NOTE: though it does support allOrNone being true or false, when allOrNone is false and success is false, it asumes the entire transaction failed and all save results are treated as failures when produced.
+
+# Notes
+
+If you create the UnitOfWork before calling `Test.startTest()`, it will cause issues with the savepoint in the case of rollbacks. To avoid this issue, ensure that the UnitOfWork is instantiated after calling `Test.startTest()` and before calling `Test.stopTest()`.
