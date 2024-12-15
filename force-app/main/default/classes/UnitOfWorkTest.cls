@@ -217,4 +217,25 @@ private class UnitOfWorkTest {
         ];
         Assert.areEqual(1, numberOfAccounts, 'Expected one account');
     }
+
+    @isTest
+    static void ensureCleanRegisteredRecordCanBeUsedWithRegisterDirty() {
+        UnitOfWork uow = new UnitOfWork();
+
+        Account acct = new Account(Name = 'Test Account 1');
+        uow.registerClean(acct);
+
+        Contact con = new Contact(FirstName = 'Simon', LastName = 'Bolivar', Email = 'fakeEmail@email.com');
+        uow.registerDirty(acct, con, Contact.AccountId);
+
+        Test.startTest();
+        uow.commitWork();
+        Test.stopTest();
+
+        Contact updatedContact = [SELECT AccountId FROM Contact];
+        Assert.isNotNull(updatedContact.AccountId, 'Expected AccountId to be set');
+
+        Account updatedAccount = [SELECT Name FROM Account];
+        Assert.areEqual(updatedContact.AccountId, updatedAccount.Id, 'Expected AccountId and Name to be set');
+    }
 }
