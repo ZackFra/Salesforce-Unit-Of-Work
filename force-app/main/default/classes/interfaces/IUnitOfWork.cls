@@ -20,7 +20,7 @@ public interface IUnitOfWork {
      */
     void registerUndelete(SObject record);
     /**
-     * @description Registers a dirty record to be inserted or updated
+     * @description Registers a record to be inserted or updated
      * @param parentRecord `SObject`
      * @param childRecord `SObject`
      * @param field `SObjectField`
