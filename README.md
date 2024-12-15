@@ -33,24 +33,24 @@ uow.commitWork();
 
 ### Methods
 
-#### registerClean(SObject record)
+#### void registerClean(SObject record)
 Cleanly register a record for upsert.
 
-#### registerDelete(SObject record)
+#### void registerDelete(SObject record)
 Cleanly register a record for deletion.
 
-#### registerUndelete(SObject record)
+#### void registerUndelete(SObject record)
 Cleanly register a record for undeletion.
 
-#### registerDirty(SObject parentRecord, SObject childRecord, SObjectField field)
+#### void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field)
 Register records such that the parent record will be upserted first, then the child record, connected to the parent record via the id field passed in. You can use the same parent record multiple times, this unit of work will remember which records have already been registered. Further, you can use a registered child record as a new parent record.
 
-#### commitWork()
+#### WorkResults commitWork()
 Commits all registered upserts, deletes, and undeletes to the database. Will rollback to the last savepoint on exception. Will re-throw the exception post-rollback. In an ideal world, this savepoint the one created when the UoW was created, but I understand that there are strange scenarios.
 
 Can be called multiple times. Upon commit, all enqueued records will be cleared so the next commit can be done cleanly.
 
-#### resetSavepoint()
+#### void resetSavepoint()
 Release the previously created savepoint and create a new one at the current point in execution.
 
 ## WorkResults
@@ -59,6 +59,15 @@ Wrapper for the results of a commit. Has three properties
 * List\<Database.DeleteResult\> deleteResults
 * List\<Database.UndeleteResult\> undeleteResults
 
+# Extending and Stubbing
+
+There is two interfaces and two stub classes that support extending this: 
+## IUnitOfWork
+Interface for the unit of work.
+
+## IUnitOfWorkDML
+Interface to encapsulate DML operations performed by the UnitOfWork.
+
 ## StubbedUnitOfWork
 Allows for unit testing. Replaces the DML operations performed in the UnitOfWork with stubbed DML interactions that return lists of appropate save results. 
 
@@ -66,3 +75,6 @@ Allows for unit testing. Replaces the DML operations performed in the UnitOfWork
   * If allOrNone is set to true, throws a fake DML exception.
   * If allOrNone is set to false, returns appropriate failed save results.
 * Otherwise has all the same methods as the UnitOfWork class
+
+## StubbedUnitOfWorkDML
+Used to stub DML interactions. Produces approprate save results for the commitWork method based on whether the DML operation is meant to be a success or failure, and also on upsert, sets created based on whether the upserted record has an id or not.
