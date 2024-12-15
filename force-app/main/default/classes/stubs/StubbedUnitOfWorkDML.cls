@@ -19,10 +19,10 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
      * @exception DmlException
      */
     public List<Database.UpsertResult> onUpsert(List<SObject> records, Boolean allOrNone, AccessLevel access) {
-        if(!this.isSuccess) {
+        if(!this.isSuccess && allOrNone) {
             throw new DmlException('Set to failed');
         }
-        return saveResultsSvc.upsertResults(records);
+        return saveResultsSvc.upsertResults(records, this.isSuccess);
     }
 
     /**
@@ -34,10 +34,10 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
      * @exception DmlException
      */
     public List<Database.DeleteResult> onDelete(List<SObject> records, Boolean allOrNone, AccessLevel access) {
-        if(!this.isSuccess) {
+        if(!this.isSuccess && allOrNone) {
             throw new DmlException('Set to failed');
         }
-        return saveResultsSvc.deleteResults(records);
+        return saveResultsSvc.deleteResults(records, this.isSuccess);
     }
 
     /**
@@ -49,9 +49,9 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
      * @exception DmlException
      */
     public List<Database.UndeleteResult> onUndelete(List<SObject> records, Boolean allOrNone, AccessLevel access) {
-        if(!this.isSuccess) {
+        if(!this.isSuccess && allOrNone) {
             throw new DmlException('Set to failed');
         }
-        return saveResultsSvc.undeleteResults(records);
+        return saveResultsSvc.undeleteResults(records, this.isSuccess);
     }
 }

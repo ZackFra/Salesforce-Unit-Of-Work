@@ -11,19 +11,13 @@ public with sharing class SaveResultsService {
      * @param records `List<SObject>`
      * @return  `List<Database.UpsertResult>`
      */
-    public List<Database.UpsertResult> upsertResults(List<SObject> records) {
+    public List<Database.UpsertResult> upsertResults(List<SObject> records, Boolean success) {
         List<Database.UpsertResult> results = new List<Database.UpsertResult>();
         for(SObject record : records) {
-            DatabaseUpsertResult mockedResult;
-            if(record.Id != null) {
-                mockedResult = new DatabaseUpsertResult(record.Id, false);
-            } else {
-                Id fakeId = fflib_IdGenerator.generate(record.getSObjectType());
-                record.Id = fakeId;
-                mockedResult = new DatabaseUpsertResult(fakeId, true);
-            }
-
+            SObjectType sot = record.getSObjectType();
+            DatabaseUpsertResult mockedResult = new DatabaseUpsertResult(sot, record.Id, success);
             Database.UpsertResult result = (Database.UpsertResult) JSON.deserialize(JSON.serialize(mockedResult), Database.UpsertResult.class);
+            record.Id = result.getId();
             results.add(result);
         }
         return results;
@@ -35,13 +29,10 @@ public with sharing class SaveResultsService {
      * @return  `List<Database.DeleteResult>`
      * @exception 
      */
-    public List<Database.DeleteResult> deleteResults(List<SObject> records) {
+    public List<Database.DeleteResult> deleteResults(List<SObject> records, Boolean success) {
         List<Database.DeleteResult> results = new List<Database.DeleteResult>();
         for(SObject record : records) {
-            if(record.Id == null) {
-                throw new IllegalArgumentException('Record must have an Id');
-            }
-            DatabaseDeleteResult mockedResult = new DatabaseDeleteResult(record.Id);
+            DatabaseDeleteResult mockedResult = new DatabaseDeleteResult(record.Id, success);
             Database.DeleteResult result = (Database.DeleteResult) JSON.deserialize(JSON.serialize(mockedResult), Database.DeleteResult.class);
             results.add(result);
         }
@@ -54,13 +45,10 @@ public with sharing class SaveResultsService {
      * @return  `List<Database.UndeleteResult>`
      * @exception 
      */
-    public List<Database.UndeleteResult> undeleteResults(List<SObject> records) {
+    public List<Database.UndeleteResult> undeleteResults(List<SObject> records, Boolean success) {
         List<Database.UndeleteResult> results = new List<Database.UndeleteResult>();
         for(SObject record : records) {
-            if(record.Id == null) {
-                throw new IllegalArgumentException('Record must have an Id');
-            }
-            DatabaseUndeleteResult mockedResult = new DatabaseUndeleteResult(record.Id);
+            DatabaseUndeleteResult mockedResult = new DatabaseUndeleteResult(record.Id, success);
             Database.UndeleteResult result = (Database.UndeleteResult) JSON.deserialize(JSON.serialize(mockedResult), Database.UndeleteResult.class);
             results.add(result);
         }
@@ -70,32 +58,67 @@ public with sharing class SaveResultsService {
     private class DatabaseUndeleteResult {
         public Id id;
         public Boolean success;
-        public List<Database.Error> errors;
+        public List<DatabaseError> errors;
 
         /**
          * @description Constructor for DatabaseUndeleteResult
          * @param recordId `Id`
          */
-        public DatabaseUndeleteResult(Id recordId) {
+        public DatabaseUndeleteResult(Id recordId, Boolean success) {
+            if(recordId == null) {
+                throw new IllegalArgumentException('Record must have an Id');
+            }
             this.id = recordId;
-            this.success = true;
-            this.errors = new List<Database.Error>();
+            this.success = success;
+            if(success) {
+                onSuccess();
+            } else {
+                onFailure();
+            }
+        }
+
+        private void onSuccess() {
+            this.errors = null;
+        }
+
+        private void onFailure() {
+            this.errors = new List<DatabaseError> {
+                new DatabaseError('An error occurred', 'DUPLICATE_VALUE')
+            };
         }
     }
 
     private class DatabaseDeleteResult {
         public Id id;
         public Boolean success;
-        public List<Database.Error> errors;
+        public List<DatabaseError> errors;
 
         /**
          * @description Constructor for DatabaseDeleteResult
          * @param recordId `Id`
          */
-        public DatabaseDeleteResult(Id recordId) {
+        public DatabaseDeleteResult(Id recordId, Boolean success) {
+            if(recordId == null) {
+                throw new IllegalArgumentException('Record must have an Id');
+            }
+
             this.id = recordId;
-            this.success = true;
-            this.errors = new List<Database.Error>();
+            this.success = success;
+            if(success) {
+                onSuccess();
+            } else {
+                onFailure();
+            }
+        }
+
+        private void onSuccess() {
+            this.errors = null;           
+        }
+
+        private void onFailure() {
+            this.errors = new List<DatabaseError> {
+                new DatabaseError('An error occurred', 'DUPLICATE_VALUE')
+            };
         }
     }
 
@@ -103,17 +126,51 @@ public with sharing class SaveResultsService {
         public Id id;
         public Boolean success;
         public Boolean created;
-        public List<Database.Error> errors;
+        public List<DatabaseError> errors;
 
         /**
          * @description Constructor for DatabaseUpsertResult
          * @param recordId `Id`
          */
-        public DatabaseUpsertResult(Id recordId, Boolean created) {
+        public DatabaseUpsertResult(SObjectType sot, Id recordId, Boolean success) {
             this.id = recordId;
-            this.success = true;
+            this.success = success;
+            if(!this.success) {
+                onFailure();
+            } else {
+                onSuccess(sot);
+            }
+        }
+
+        private void onFailure() {
+            this.created = false;
+            this.errors = new List<DatabaseError> {
+                new DatabaseError('An error occurred', 'DUPLICATE_VALUE')
+            };
+        }
+
+        private void onSuccess(SObjectType sot) {
+            Boolean created = (this.id == null);
             this.created = created;
-            this.errors = new List<Database.Error>();
+            this.errors = null;
+            if(created) {
+                this.id = fflib_IdGenerator.generate(sot);
+            }
+        }
+    }
+
+    private class DatabaseError {
+        public String message;
+        public String statusCode;
+
+        /**
+         * @description Constructor for DatabaseError
+         * @param message `String`
+         * @param statusCode `String`
+         */
+        public DatabaseError(String message, String statusCode) {
+            this.message = message;
+            this.statusCode = statusCode;
         }
     }
 }
