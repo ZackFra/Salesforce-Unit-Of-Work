@@ -4,7 +4,7 @@
  * @since 12/13/2024
  */
 @IsTest
-public with sharing class StubbedUnitOfWork extends UnitOfWork implements IUnitOfWork {
+public with sharing class StubbedUnitOfWork extends UnitOfWork {
 
 
     /**
