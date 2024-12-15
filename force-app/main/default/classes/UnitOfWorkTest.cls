@@ -185,4 +185,36 @@ private class UnitOfWorkTest {
 
         Assert.areEqual(0, numberOfAccounts, 'Expected full rollback');
     }
+
+    @IsTest
+    static void ensureResetSavepointWorksCorrectly() {
+        UnitOfWork uow = new UnitOfWork();
+        
+        Account acct0 = new Account(Name = 'Test Account 1');
+        insert acct0;
+
+        // should trigger failure trying to update the same record twice
+        Account acct1 = new Account(Id = acct0.Id, Name = 'Test Account 2');
+        Account acct2 = new Account(Id = acct0.Id, Name = 'Test Account 3');
+        uow.registerClean(acct1);
+        uow.registerClean(acct2);
+        uow.resetSavepoint();
+
+        Boolean isExceptionThrown = false;
+        Test.startTest();
+        try {
+            uow.commitWork();
+        } catch(Exception e) {
+            isExceptionThrown = true;
+        }
+        Test.stopTest();
+
+        Assert.isTrue(isExceptionThrown, 'Expected exception to be thrown');
+
+        Integer numberOfAccounts = [
+            SELECT COUNT()
+            FROM Account
+        ];
+        Assert.areEqual(1, numberOfAccounts, 'Expected one account');
+    }
 }
