@@ -70,10 +70,10 @@ private class UnitOfWorkTest {
         Account acct4 = new Account(Name = 'Test Account 4');
         Account acct5 = new Account(Name = 'Test Account 5');
         
-        Relationship rel = uow.registerDirty(acct1, acct2, Account.ParentId);
-       	rel = uow.registerDirty(rel.childRecord, acct3, Account.ParentId);
-        rel = uow.registerDirty(rel.childRecord, acct4, Account.ParentId);
-        rel = uow.registerDirty(rel.childRecord, acct5, Account.ParentId);
+        uow.registerDirty(acct1, acct2, Account.ParentId);
+       	uow.registerDirty(acct2, acct3, Account.ParentId);
+        uow.registerDirty(acct3, acct4, Account.ParentId);
+        uow.registerDirty(acct4, acct5, Account.ParentId);
         
         Test.startTest();
         uow.commitWork();
@@ -124,7 +124,7 @@ private class UnitOfWorkTest {
         uow.commitWork();
         Integer dmlLimits = Limits.getDmlStatements();
         Test.stopTest();
-        Assert.areEqual(2, dmlLimits, 'Expected only two DML statements');
+        Assert.areEqual(2, dmlLimits, 'Expected only one DML statements');
     }
     
     @IsTest

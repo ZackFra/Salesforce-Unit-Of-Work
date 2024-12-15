@@ -26,15 +26,7 @@ public interface IUnitOfWork {
      * @param field `SObjectField`
      * @return  `Relationship`
      */
-    Relationship registerDirty(SObject parentRecord, SObject childRecord, SObjectField field);
-    /**
-     * @description Registers a dirty record to be inserted or updated
-     * @param parentRecord `DirtyRecord` - previously registered parent record
-     * @param childRecord `SObject`
-     * @param field `SObjectField`
-     * @return  `Relationship`
-     */
-    Relationship registerDirty(DirtyRecord parentRecord, SObject childRecord, SObjectField field);
+    void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field);
     /**
      * @description Commits all work to the database, returns the results 
      * @return  `WorkResults`

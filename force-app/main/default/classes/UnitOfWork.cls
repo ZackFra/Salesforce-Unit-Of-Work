@@ -7,7 +7,8 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     List<SObject> cleanRecords = new List<SObject>();
     List<SObject> deletedRecords = new List<SObject>();
     List<SObject> undeletedRecords = new List<SObject>();
-    
+
+    Map<SObject, DirtyRecord> dirtyRecordByRecord = new Map<SObject, DirtyRecord>();
     List<DirtyRecord> dirtyRecords = new List<DirtyRecord>();
     Boolean allOrNone;
     AccessLevel access;
@@ -76,24 +77,16 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param field `SObjectField`
      * @return  `Relationship`
      */
-    public Relationship registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
-        DirtyRecord dirtyParentRecord = new DirtyRecord(parentRecord);
-        this.dirtyRecords.add(dirtyParentRecord);
-        return registerDirty(dirtyParentRecord, childRecord, field);
-    }
-    
-    /**
-     * @description Register a dirty update, for an already registered parent recod
-     * @param dirtyParentRecord `DirtyRecord`
-     * @param childRecord `SObject`
-     * @param field `SObjectField`
-     * @return  `Relationship`
-     */
-    public Relationship registerDirty(DirtyRecord dirtyParentRecord, SObject childRecord, SObjectField field) {
+    public void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
+        DirtyRecord dirtyParentRecord = this.dirtyRecordByRecord.get(parentRecord);
+        if(dirtyParentRecord == null) {
+            dirtyParentRecord = new DirtyRecord(parentRecord);
+            this.dirtyRecords.add(dirtyParentRecord);
+            this.dirtyRecordByRecord.put(parentRecord, dirtyParentRecord);
+        }
         DirtyRecord dirtyChildRecord = new DirtyRecord(childRecord, field);
         dirtyParentRecord.children.add(dirtyChildRecord);
-        Relationship parentChildRel = new Relationship(dirtyParentRecord, dirtyChildRecord);
-        return parentChildRel;
+        this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
     }
     
     /**
@@ -104,8 +97,8 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     public WorkResults commitWork() {
         try {
             WorkResults wr = new WorkResults();
-            wr = commitClean(wr);
-            wr = commitDirty(wr);
+            wr = commitUpserts(wr);
+            wr = commitDeletesAndUndeletes(wr);
             return wr;
         } catch(Exception e) {
             Database.rollback(this.sp);
@@ -113,11 +106,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         }
     }
     
-    private WorkResults commitClean(WorkResults wr) {
-        if(!cleanRecords.isEmpty()) {
-            wr.upsertResults.addAll(this.dml.onUpsert(cleanRecords, allOrNone, access));
-            this.cleanRecords.clear();
-        }
+    private WorkResults commitDeletesAndUndeletes(WorkResults wr) {
         if(!deletedRecords.isEmpty()) {
             wr.deleteResults.addall(this.dml.onDelete(deletedRecords, allOrNone, access));
             this.deletedRecords.clear();
@@ -129,24 +118,36 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         return wr;
     }
     
-    private WorkResults commitDirty(WorkResults wr) {
-       if(this.dirtyRecords.isEmpty()) {
-           return wr;
-       }
-       List<SObject> records = new List<SObject>();
-       for(DirtyRecord dr : this.dirtyRecords) {
-       	    records.add(dr.record);
-       }
-       wr.upsertResults.addAll(this.dml.onUpsert(records, allOrNone, access));
+    private WorkResults commitUpserts(WorkResults wr) {
+        if(this.dirtyRecords.isEmpty() && this.cleanRecords.isEmpty()) {
+            this.dirtyRecordByRecord.clear();
+            return wr;
+        }
+
+       List<SObject> allRecords = getUpsertableRecords();
+
+       List<Database.UpsertResult> upsertResults = this.dml.onUpsert(allRecords, allOrNone, access);
+       wr.upsertResults.addAll(upsertResults);
        List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
-       for(Integer i = 0; i < records.size(); i++) {
+
+       for(Integer i = this.cleanRecords.size(); i < allRecords.size(); i++) {
             DirtyRecord dirtyParentRecord = this.dirtyRecords[i];
-            SObject record = records[i];
+            SObject record = allRecords[i];
            	List<DirtyRecord> connectedChildRecords = connectDirtyChildRecords(dirtyParentRecord, record);
            	childDirtyRecords.addAll(connectedChildRecords);
         }
+        this.cleanRecords.clear();
         this.dirtyRecords = childDirtyRecords;
-        return commitDirty(wr);
+        return commitUpserts(wr);
+    }
+
+    private List<SObject> getUpsertableRecords() {
+        List<SObject> allRecords = new List<SObject>();
+        allRecords.addAll(this.cleanRecords);
+        for(DirtyRecord dr : this.dirtyRecords) {
+                allRecords.add(dr.record);
+        }
+        return allRecords;
     }
     
     private List<DirtyRecord> connectDirtyChildRecords(DirtyRecord dirtyParentRecord, SObject newRecord) {
