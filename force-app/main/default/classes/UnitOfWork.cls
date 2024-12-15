@@ -106,6 +106,9 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         }
     }
 
+    /**
+     * @description Reset the savepoint to the current state
+     */
     public void resetSavepoint() {
         Database.releaseSavepoint(this.sp);
         this.sp = Database.setSavepoint();
