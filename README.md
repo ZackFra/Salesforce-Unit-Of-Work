@@ -5,7 +5,7 @@ Implemented as a standalone unit of work, based on the Apex Common Library's imp
 # Apex Classes
 
 ## UnitOfWork
-This Apex class allows you to encapsulate CRUD operations. It can be passed down to multiple methods from a controller, and register all operations, to be executed later. Upon instantiation, a savepoint is created, which is used to rollback the DML operations if any errors occur.
+This Apex class allows you to encapsulate CRUD operations. It can be passed down to multiple methods from a controller or trigger handler, and register all operations, to be executed later. Upon instantiation, a savepoint is created, which is used to rollback the DML operations if any errors occur.
 
 Ex.
 
