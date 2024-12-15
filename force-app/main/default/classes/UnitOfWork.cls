@@ -136,6 +136,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
            	List<DirtyRecord> connectedChildRecords = connectDirtyChildRecords(dirtyParentRecord);
            	childDirtyRecords.addAll(connectedChildRecords);
         }
+        
         this.cleanRecords.clear();
         this.dirtyRecords = childDirtyRecords;
         return commitUpserts(wr);
