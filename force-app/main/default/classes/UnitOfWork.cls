@@ -57,7 +57,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @description Register an inserted or updated record
      * @param record `SObject`
      */
-    public void registerClean(SObject record) {
+    public virtual void registerClean(SObject record) {
         DirtyRecord cleanRecord = new DirtyRecord(record);
         this.dirtyRecordByRecord.put(record, cleanRecord);
         this.dirtyRecords.add(cleanRecord);
@@ -67,7 +67,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @description Register a deleted recod
      * @param record `SObject`
      */
-    public void registerDelete(SObject record) {
+    public virtual void registerDelete(SObject record) {
         this.deletedRecords.add(record);
     }
     
@@ -75,7 +75,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @description Register an undeleted recod
      * @param record `SObject`
      */
-    public void registerUndelete(SObject record) {
+    public virtual void registerUndelete(SObject record) {
         this.undeletedRecords.add(record);
     }
     
@@ -86,7 +86,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param field `SObjectField`
      * @return  `Relationship`
      */
-    public void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
+    public virtual void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
         DirtyRecord dirtyParentRecord = this.dirtyRecordByRecord.get(parentRecord);
         if(dirtyParentRecord == null) {
             dirtyParentRecord = new DirtyRecord(parentRecord);
@@ -103,7 +103,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @return `WorkResults`
      * @throws Any errors
      */
-    public WorkResults commitWork() {
+    public virtual WorkResults commitWork() {
         try {
             WorkResults wr = new WorkResults();
             wr = commitUpserts(wr);
@@ -118,7 +118,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     /**
      * @description Reset the savepoint to the current state
      */
-    public void resetSavepoint() {
+    public virtual void resetSavepoint() {
         Database.releaseSavepoint(this.sp);
         this.sp = Database.setSavepoint();
     }
