@@ -7,18 +7,18 @@
 public with sharing class StubbedUnitOfWork extends UnitOfWork {
 
     /**
-     * @description Constructor for stubbed unit of work
-     */
-    public StubbedUnitOfWork() {
-        super(true, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
-    }
-
-    /**
      * @description Constructor for stubbed unit of work with allOrNone
      * @param allOrNone `Boolean`
      */
     public StubbedUnitOfWork(Boolean allOrNone) {
         super(allOrNone, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
+    }
+
+    /**
+     * @description Constructor for stubbed unit of work
+     */
+    public StubbedUnitOfWork() {
+        this(true);
     }
 
     /**
