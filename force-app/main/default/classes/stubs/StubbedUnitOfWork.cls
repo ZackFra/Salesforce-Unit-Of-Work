@@ -14,6 +14,14 @@ public with sharing class StubbedUnitOfWork extends UnitOfWork {
     }
 
     /**
+     * @description Constructor for stubbed unit of work with allOrNone
+     * @param allOrNone `Boolean`
+     */
+    public StubbedUnitOfWork(Boolean allOrNone) {
+        super(allOrNone, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
+    }
+
+    /**
      * @description Designates that a call to commitWork should throw a DmlException
      */
     public void shouldFail() {
