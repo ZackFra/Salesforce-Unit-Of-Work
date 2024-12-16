@@ -28,6 +28,14 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         this.allOrNone = allOrNone;
         this.access = access;
     }
+
+    /**
+     * @description Constructor all or none
+     * @param allOrNone `Boolean`
+     */
+    public UnitOfWork(Boolean allOrNone) {
+        this(allOrNone, AccessLevel.USER_MODE, new UnitOfWorkDML());
+    }
     
     /**
      * @description Constructor all or none and access level
