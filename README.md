@@ -36,6 +36,9 @@ uow.commitWork();
 #### (Constructor) UnitOfWork()
 Instantiates a new UnitOfWork with USER_MODE AccessLevel and allOrNone set to true.
 
+#### (Constructor) UnitOfWork(Boolean allOrNone)
+Instantiates a new UnitOfWork with the specified allOrNone setting, in USER_MODE
+
 #### (Constructor) UnitOfWork(Boolean allOrNone, AccessLevel access)
 Instantiates a new UnitOfWork with the specified AccessLevel and allOrNone setting.
 
