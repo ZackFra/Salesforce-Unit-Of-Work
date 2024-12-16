@@ -33,7 +33,7 @@ private class UnitOfWorkTest {
         
         acct.AccountNumber = '12345';
         
-        UnitOfWork uow = new UnitOfWork(false, AccessLevel.USER_MODE);
+        UnitOfWork uow = new UnitOfWork(false);
         
         Test.startTest();
         uow.commitWork();
