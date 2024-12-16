@@ -4,14 +4,14 @@
  * @since 12/13/2024
  */
 @IsTest
-public with sharing class StubbedUnitOfWork extends UnitOfWork {
+public without sharing class StubbedUnitOfWork extends UnitOfWork {
 
     /**
      * @description Constructor for stubbed unit of work with allOrNone
      * @param allOrNone `Boolean`
      */
     public StubbedUnitOfWork(Boolean allOrNone) {
-        super(allOrNone, AccessLevel.USER_MODE, new StubbedUnitOfWorkDML());
+        super(allOrNone, AccessLevel.SYSTEM_MODE, new StubbedUnitOfWorkDML());
     }
 
     /**
