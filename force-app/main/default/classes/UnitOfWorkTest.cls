@@ -365,4 +365,20 @@ private class UnitOfWorkTest {
         }
         Test.stopTest();
     }
+
+    @isTest
+    static void ensureIllegalArgumentExceptionIsThronwWhenReRegisteringChildRecordToNewParent() {
+        Account acct1 = new Account(Name = 'Test Account 1');
+        Account acct2 = new Account(Name = 'Test Account 2');
+        Account acct3 = new Account(Name = 'Test Account 3');
+
+        UnitOfWork uow = new UnitOfWork();
+        uow.registerDirty(acct1, acct2, Account.ParentId);
+        try {
+            uow.registerDirty(acct3, acct2, Account.ParentId);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+    }
 }

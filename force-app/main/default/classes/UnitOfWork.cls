@@ -105,8 +105,8 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         }
 
         DirtyRecord dirtyParentRecord = getDirtyParentRecord(parentRecord);
-        DirtyRecord dirtyChildRecord = getDirtyChildRecord(childRecord, field);
-        
+        DirtyRecord dirtyChildRecord = getAndValidateDirtyChildRecord(childRecord, field);
+
         dirtyParentRecord.children.add(dirtyChildRecord);
         this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
     }
@@ -189,12 +189,14 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         return newDirtyParentRecords;
     }
 
-    private DirtyRecord getDirtyChildRecord(SObject childRecord, SObjectField field) {
+    private DirtyRecord getAndValidateDirtyChildRecord(SObject childRecord, SObjectField field) {
         DirtyRecord dirtyChildRecord = this.dirtyRecordByRecord.get(childRecord);
-        if(dirtyChildRecord == null) {
+        if(dirtyChildRecord != null && dirtyChildRecord.field != null) {
+            throw new IllegalArgumentException('Child record is already registered to a parent record');
+        } else if(dirtyChildRecord == null) {
             dirtyChildRecord = new DirtyRecord(childRecord, field);
             this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
-        } else if(this.dirtyRecords.contains(dirtyChildRecord)) {
+        } else if(dirtyChildRecord != null) {
             dirtyChildRecord.field = field;
             this.dirtyRecords.remove(this.dirtyRecords.indexOf(dirtyChildRecord));
         } else if(dirtyChildRecord.field != field) {
