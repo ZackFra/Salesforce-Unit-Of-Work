@@ -419,6 +419,7 @@ private class UnitOfWorkTest {
         AccessLevel.USER_MODE,
         new UnitOfWorkDML()
       );
+      UnitOfWork uow4 = new UnitOfWork(false, AccessLevel.USER_MODE);
     } catch (Exception e) {
       Assert.fail('Expected no exception to be thrown');
     }
