@@ -4,36 +4,40 @@
  * @since 12/13/2024
  */
 public interface IUnitOfWork {
-    /**
-     * @description Registers a record to be inserted or updated
-     * @param record `SObject`
-     */
-    void registerClean(SObject record);
-    /**
-     * @description Registers a record to be deleted
-     * @param record `SObject`
-     */
-    void registerDelete(SObject record);
-    /**
-     * @description Registers a record to be undeleted
-     * @param record `SObject`
-     */
-    void registerUndelete(SObject record);
-    /**
-     * @description Registers a record to be inserted or updated
-     * @param parentRecord `SObject`
-     * @param childRecord `SObject`
-     * @param field `SObjectField`
-     * @return  `Relationship`
-     */
-    void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field);
-    /**
-     * @description Commits all work to the database, returns the results 
-     * @return  `WorkResults`
-     */
-    WorkResults commitWork();
-    /**
-     * @description Reset the savepoint
-     */
-    void resetSavepoint();
+  /**
+   * @description Registers a record to be inserted or updated
+   * @param record `SObject`
+   */
+  void registerClean(SObject record);
+  /**
+   * @description Registers a record to be deleted
+   * @param record `SObject`
+   */
+  void registerDelete(SObject record);
+  /**
+   * @description Registers a record to be undeleted
+   * @param record `SObject`
+   */
+  void registerUndelete(SObject record);
+  /**
+   * @description Registers a record to be inserted or updated
+   * @param parentRecord `SObject`
+   * @param childRecord `SObject`
+   * @param field `SObjectField`
+   * @return  `Relationship`
+   */
+  void registerDirty(
+    SObject parentRecord,
+    SObject childRecord,
+    SObjectField field
+  );
+  /**
+   * @description Commits all work to the database, returns the results
+   * @return  `WorkResults`
+   */
+  WorkResults commitWork();
+  /**
+   * @description Reset the savepoint
+   */
+  void resetSavepoint();
 }
