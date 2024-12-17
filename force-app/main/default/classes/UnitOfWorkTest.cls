@@ -408,4 +408,19 @@ private class UnitOfWorkTest {
       // expected
     }
   }
+
+  @isTest
+  static void ensureAllConstructorsWork() {
+    try {
+      UnitOfWork uow = new UnitOfWork();
+      UnitOfWork uow2 = new UnitOfWork(false);
+      UnitOfWork uow3 = new UnitOfWork(
+        true,
+        AccessLevel.USER_MODE,
+        new UnitOfWorkDML()
+      );
+    } catch (Exception e) {
+      Assert.fail('Expected no exception to be thrown');
+    }
+  }
 }
