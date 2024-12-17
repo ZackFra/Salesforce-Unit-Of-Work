@@ -187,7 +187,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       allOrNone,
       access
     );
-    this.dirtyRecords = getNextBatch(this.dirtyRecords, upsertResults);
+    this.dirtyRecords = getNextBatch(upsertResults);
 
     wr.upsertResults.addAll(upsertResults);
 
@@ -195,7 +195,6 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
   }
 
   private List<DirtyRecord> getNextBatch(
-    List<DirtyRecord> dirtyParentRecords,
     List<Database.UpsertResult> upsertResults
   ) {
     List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
