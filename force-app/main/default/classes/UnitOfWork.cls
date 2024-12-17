@@ -198,7 +198,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         if(dirtyChildRecord == null) {
             dirtyChildRecord = new DirtyRecord(childRecord, field);
             this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
-        } else if(dirtyChildRecord != null) {
+        } else {
             dirtyChildRecord.field = field;
             this.dirtyRecords.remove(this.dirtyRecords.indexOf(dirtyChildRecord));
         }
