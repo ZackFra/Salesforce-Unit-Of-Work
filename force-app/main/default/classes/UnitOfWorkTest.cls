@@ -443,4 +443,44 @@ private class UnitOfWorkTest {
     Database.UpsertResult upsertResult = wr.upsertResults[0];
     Assert.isFalse(upsertResult.isSuccess(), 'Expected upsert to fail');
   }
+
+  @isTest
+  static void ensureFailedUpsertsToParentsDoesNotCreateChildRecords() {
+    Account acct = new Account(
+      Name = 'Test Account 1',
+      ParentId = fflib_IDGenerator.generate(Account.SObjectType)
+    );
+    Contact con = new Contact(
+      FirstName = 'Simon',
+      LastName = 'Bolivar',
+      Email = 'fake@email.com'
+    );
+
+    UnitOfWork uow = new UnitOfWork(false);
+    uow.registerClean(acct);
+    uow.registerDirty(acct, con, Contact.AccountId);
+
+    WorkResults wr;
+    try {
+      wr = uow.commitWork();
+    } catch (Exception e) {
+      Assert.fail('Expected no exception to be thrown');
+    }
+
+    Database.UpsertResult upsertResult = wr.upsertResults[0];
+    Assert.isFalse(upsertResult.isSuccess(), 'Expected upsert to fail');
+
+    Integer numberOfContacts = [
+      SELECT COUNT()
+      FROM Contact
+    ];
+    Assert.areEqual(0, numberOfContacts, 'Expected no contacts to be inserted');
+
+    Integer numberOfAccounts = [
+      SELECT COUNT()
+      FROM Account
+    ];
+
+    Assert.areEqual(0, numberOfAccounts, 'Expected no accounts to be inserted');
+  }
 }
