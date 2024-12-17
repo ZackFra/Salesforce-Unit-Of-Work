@@ -426,7 +426,7 @@ private class UnitOfWorkTest {
   }
 
   @isTest
-  static void ensureFailuresWhileAllOrNoneIsTrueDontTriggerExceptions() {
+  static void ensureFailedUpsertsWhileAllOrNoneIsTrueDontTriggerExceptions() {
     // will trigger failure because a fake id is passed in
     Account acct = new Account(
       Name = 'Test Account 1',
