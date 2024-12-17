@@ -193,7 +193,9 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         DirtyRecord dirtyChildRecord = this.dirtyRecordByRecord.get(childRecord);
         if(isRegisteredToParentRecord(dirtyChildRecord)) {
             throw new IllegalArgumentException('Child record is already registered to a parent record');
-        } else if(dirtyChildRecord == null) {
+        } 
+        
+        if(dirtyChildRecord == null) {
             dirtyChildRecord = new DirtyRecord(childRecord, field);
             this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
         } else if(dirtyChildRecord != null) {
