@@ -87,13 +87,13 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @return  `Relationship`
      */
     public virtual void registerDirty(SObject parentRecord, SObject childRecord, SObjectField field) {
-        DirtyRecord dirtyParentRecord = this.dirtyRecordByRecord.get(parentRecord);
-        if(dirtyParentRecord == null) {
-            dirtyParentRecord = new DirtyRecord(parentRecord);
-            this.dirtyRecords.add(dirtyParentRecord);
-            this.dirtyRecordByRecord.put(parentRecord, dirtyParentRecord);
+        if(parentRecord == null || childRecord == null || field == null) {
+            throw new IllegalArgumentException('Parent record, child record, and field must not be null');
         }
-        DirtyRecord dirtyChildRecord = new DirtyRecord(childRecord, field);
+
+        DirtyRecord dirtyParentRecord = getDirtyParentRecord(parentRecord);
+        DirtyRecord dirtyChildRecord = getDirtyChildRecord(childRecord, field);
+        
         dirtyParentRecord.children.add(dirtyChildRecord);
         this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
     }
@@ -152,7 +152,11 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
         wr.upsertResults.addAll(upsertResults);
         List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
 
-        for(DirtyRecord dirtyParentRecord : this.dirtyRecords) {
+        for(Integer i = 0; i < this.dirtyRecords.size(); i++) {
+            DirtyRecord dirtyParentRecord = this.dirtyRecords[i];
+            if(!upsertResults[i].isSuccess()) {
+                continue;
+            }
            	List<DirtyRecord> connectedChildRecords = connectDirtyChildRecords(dirtyParentRecord);
            	childDirtyRecords.addAll(connectedChildRecords);
         }
@@ -170,5 +174,27 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
             newDirtyParentRecords.add(childRecord);
         }
         return newDirtyParentRecords;
+    }
+
+    private DirtyRecord getDirtyChildRecord(SObject childRecord, SObjectField field) {
+        DirtyRecord dirtyChildRecord = this.dirtyRecordByRecord.get(childRecord);
+        if(dirtyChildRecord == null) {
+            dirtyChildRecord = new DirtyRecord(childRecord, field);
+            this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
+        } else if(this.dirtyRecords.contains(dirtyChildRecord)) {
+            dirtyChildRecord.field = field;
+            this.dirtyRecords.remove(this.dirtyRecords.indexOf(dirtyChildRecord));
+        }
+        return dirtyChildRecord;
+    }
+
+    private DirtyRecord getDirtyParentRecord(SObject parentRecord) {
+        DirtyRecord dirtyParentRecord =this.dirtyRecordByRecord.get(parentRecord);
+        if(dirtyParentRecord == null) {
+            dirtyParentRecord = new DirtyRecord(parentRecord);
+            this.dirtyRecords.add(dirtyParentRecord);
+            this.dirtyRecordByRecord.put(parentRecord, dirtyParentRecord);
+        }
+        return dirtyParentRecord;
     }
 }

@@ -238,4 +238,57 @@ private class UnitOfWorkTest {
         Account updatedAccount = [SELECT Name FROM Account];
         Assert.areEqual(updatedContact.AccountId, updatedAccount.Id, 'Expected AccountId and Name to be set');
     }
+
+    @isTest
+    static void ensureOrderingIsRespectedWhenRegistering() {
+
+        Account acct1 = new Account(Name = 'Test Account 1');
+        Account acct2 = new Account(Name = 'Test Account 2');
+        Account acct3 = new Account(Name = 'Test Account 3');
+        Account acct4 = new Account(Name = 'Test Account 4');
+        Account acct5 = new Account(Name = 'Test Account 5');
+        
+        Test.startTest();
+        UnitOfWork uow = new UnitOfWork();
+        uow.registerDirty(acct1, acct2, Account.ParentId);
+        uow.registerDirty(acct3, acct4, Account.ParentId);
+        uow.registerDirty(acct2, acct3, Account.ParentId);
+        uow.registerDirty(acct4, acct5, Account.ParentId);
+        WorkResults wr = uow.commitWork();
+        Test.stopTest();
+
+        Account acct = [
+            SELECT Name, (
+            	SELECT Name, (
+                	SELECT Name, (
+                    	SELECT Name, (
+                        	SELECT Name
+                            FROM ChildAccounts
+                        ) FROM ChildAccounts
+                    ) FROM ChildAccounts
+                ) FROM ChildAccounts
+            )
+            FROM Account
+            WHERE Name = 'Test Account 1'
+        ];
+
+        Assert.areEqual(5, wr.upsertResults.size(), 'Expected five upserts');
+        
+        Account examine = acct;
+        Assert.areEqual('Test Account 1', examine.Name, 'Expected name to match');
+        examine = examine.ChildAccounts[0];
+        Assert.areEqual('Test Account 2', examine.Name, 'Expected name to match');
+        examine = examine.ChildAccounts[0];
+        Assert.areEqual('Test Account 3', examine.Name, 'Expected name to match');
+        examine = examine.ChildAccounts[0];
+        Assert.areEqual('Test Account 4', examine.Name, 'Expected name to match');
+        examine = examine.ChildAccounts[0];
+        Assert.areEqual('Test Account 5', examine.Name, 'Expected name to match');
+
+        Integer numberOfAccounts = [
+            SELECT COUNT()
+            FROM Account
+        ];
+        Assert.areEqual(5, numberOfAccounts, 'Expected five accounts');
+    }
 }
