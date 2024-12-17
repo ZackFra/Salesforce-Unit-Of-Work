@@ -295,6 +295,8 @@ private class UnitOfWorkTest {
     @isTest
     static void ensureIllegalArgumentExceptionsAreThrown() {
         Account acct = new Account();
+        Contact con0 = new Contact();
+        Contact con1 = new Contact();
 
         Test.startTest();
         UnitOfWork uow = new UnitOfWork();
@@ -349,6 +351,14 @@ private class UnitOfWorkTest {
 
         try {
             uow.registerUndelete(acct);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerDirty(acct, con0, Contact.AccountId);
+            uow.registerDirty(con1, con0, Contact.ReportsToId);
             Assert.fail('Expected exception to be thrown');
         } catch(IllegalArgumentException e) {
             // expected
