@@ -187,7 +187,17 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       allOrNone,
       access
     );
+    this.dirtyRecords = getNextBatch(this.dirtyRecords, upsertResults);
+
     wr.upsertResults.addAll(upsertResults);
+
+    return commitUpserts(wr);
+  }
+
+  private List<DirtyRecord> getNextBatch(
+    List<DirtyRecord> dirtyParentRecords,
+    List<Database.UpsertResult> upsertResults
+  ) {
     List<DirtyRecord> childDirtyRecords = new List<DirtyRecord>();
 
     for (Integer i = 0; i < this.dirtyRecords.size(); i++) {
@@ -200,9 +210,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       );
       childDirtyRecords.addAll(connectedChildRecords);
     }
-
-    this.dirtyRecords = childDirtyRecords;
-    return commitUpserts(wr);
+    return childDirtyRecords;
   }
 
   private List<DirtyRecord> connectDirtyChildRecords(
