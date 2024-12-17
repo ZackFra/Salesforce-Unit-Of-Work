@@ -424,4 +424,23 @@ private class UnitOfWorkTest {
       Assert.fail('Expected no exception to be thrown');
     }
   }
+
+  @isTest
+  static void ensureFailuresWhileAllOrNoneIsTrueDontTriggerExceptions() {
+    // will trigger failure because a fake id is passed in
+    Account acct = new Account(
+      Name = 'Test Account 1',
+      ParentId = fflib_IDGenerator.generate(Account.SObjectType)
+    );
+    UnitOfWork uow = new UnitOfWork(false);
+    uow.registerClean(acct);
+    WorkResults wr;
+    try {
+      wr = uow.commitWork();
+    } catch (Exception e) {
+      Assert.fail('Expected no exception to be thrown');
+    }
+    Database.UpsertResult upsertResult = wr.upsertResults[0];
+    Assert.isFalse(upsertResult.isSuccess(), 'Expected upsert to fail');
+  }
 }
