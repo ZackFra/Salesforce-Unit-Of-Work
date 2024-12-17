@@ -58,6 +58,9 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param record `SObject`
      */
     public virtual void registerClean(SObject record) {
+        if(record == null) {
+            throw new IllegalArgumentException('Record must not be null');
+        }
         DirtyRecord cleanRecord = new DirtyRecord(record);
         this.dirtyRecordByRecord.put(record, cleanRecord);
         this.dirtyRecords.add(cleanRecord);
@@ -68,6 +71,11 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param record `SObject`
      */
     public virtual void registerDelete(SObject record) {
+        if(record == null) {
+            throw new IllegalArgumentException('Record must not be null');
+        } else if(record.Id == null) {
+            throw new IllegalArgumentException('Record must have an Id');
+        }
         this.deletedRecords.add(record);
     }
     
@@ -76,6 +84,11 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
      * @param record `SObject`
      */
     public virtual void registerUndelete(SObject record) {
+        if(record == null) {
+            throw new IllegalArgumentException('Record must not be null');
+        } else if(record.Id == null) {
+            throw new IllegalArgumentException('Record must have an Id');
+        }
         this.undeletedRecords.add(record);
     }
     
