@@ -291,4 +291,68 @@ private class UnitOfWorkTest {
         ];
         Assert.areEqual(5, numberOfAccounts, 'Expected five accounts');
     }
+
+    @isTest
+    static void ensureIllegalArgumentExceptionsAreThrown() {
+        Account acct = new Account();
+
+        Test.startTest();
+        UnitOfWork uow = new UnitOfWork();
+        try {
+            uow.registerDirty(null, acct, Account.ParentId);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerDirty(acct, null, Account.ParentId);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerDirty(acct, acct, null);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerClean(null);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerDelete(null);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerDelete(acct);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerUndelete(null);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            uow.registerUndelete(acct);
+            Assert.fail('Expected exception to be thrown');
+        } catch(IllegalArgumentException e) {
+            // expected
+        }
+        Test.stopTest();
+    }
 }
