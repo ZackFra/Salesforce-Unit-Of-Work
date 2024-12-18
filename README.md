@@ -50,6 +50,10 @@ Instantiates a new UnitOfWork with the specified AccessLevel and allOrNone setti
 
 Cleanly register a record for upsert.
 
+### void registerClean(SObject record, SObjectField externalIdField)
+
+Cleanrly regsiter a record for upsert with an external id field.
+
 #### void registerDelete(SObject record)
 
 Cleanly register a record for deletion.
