@@ -70,6 +70,12 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     this.dirtyRecords.add(cleanRecord);
   }
 
+  /**
+   * @description Register clean, with an external id field
+   * @param record `SObject`
+   * @param externalIdField `SObjectField`
+   * @exception IllegalArgumentException
+   */
   public virtual void registerClean(
     SObject record,
     SObjectField externalIdField

@@ -17,6 +17,14 @@ public interface IUnitOfWorkDML {
     AccessLevel access
   );
 
+  /**
+   * @description On upsert, with an external id field
+   * @param records `List<SObject>`
+   * @param externalIdField `SObjectField`
+   * @param allOrNone `Boolean`
+   * @param access ``AccessLevel`
+   * @return  `List<Database.UpsertResult>`
+   */
   List<Database.UpsertResult> onUpsert(
     List<SObject> records,
     SObjectField externalIdField,

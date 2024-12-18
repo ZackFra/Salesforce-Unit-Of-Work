@@ -10,6 +10,12 @@ public interface IUnitOfWork {
    */
   void registerClean(SObject record);
   /**
+   * @description Register clean with external id field
+   * @param record `SObject`
+   * @param externalIdField `SObjectField`
+   */
+  void registerClean(SObject record, SObjectField externalIdField);
+  /**
    * @description Registers a record to be deleted
    * @param record `SObject`
    */

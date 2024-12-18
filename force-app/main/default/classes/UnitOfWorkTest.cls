@@ -1,5 +1,22 @@
 @IsTest
 private class UnitOfWorkTest {
+  @isTest
+  static void ensureRegisterCleanWorksWithExternalId() {
+    Account acct = new Account(Name = 'Test Account');
+
+    Test.startTest();
+    // I know, I know, Account.Name is not an external id field,
+    // but there is no way to test this without a custom field,
+    // thus I'm stubbing the DML
+    IUnitOfWork uow = new StubbedUnitOfWork();
+    uow.registerClean(acct, Account.Name);
+    WorkResults wr = uow.commitWork();
+    Test.stopTest();
+
+    Database.UpsertResult upsertResult = wr.upsertResults[0];
+    Assert.isTrue(upsertResult.isSuccess(), 'Expected upsert to be successful');
+  }
+
   @IsTest
   static void ensureCleanInsertIsSuccessful() {
     Account acct = new Account(Name = 'Test Account');
