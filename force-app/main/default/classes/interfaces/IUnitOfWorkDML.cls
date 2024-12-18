@@ -16,6 +16,14 @@ public interface IUnitOfWorkDML {
     Boolean allOrNone,
     AccessLevel access
   );
+
+  List<Database.UpsertResult> onUpsert(
+    List<SObject> records,
+    SObjectField externalIdField,
+    Boolean allOrNone,
+    AccessLevel access
+  );
+
   /**
    * @description handle delete
    * @param records `List<SObject>`

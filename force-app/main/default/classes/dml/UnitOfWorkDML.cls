@@ -20,6 +20,16 @@ public without sharing class UnitOfWorkDML implements IUnitOfWorkDML {
     return Database.upsert(records, allOrNone, access);
   }
 
+  public List<Database.UpsertResult> onUpsert(
+    List<SObject> records,
+    SObjectField externalIdField,
+    Boolean allOrNone,
+    AccessLevel access
+  ) {
+    records.sort();
+    return Database.upsert(records, externalIdField, allOrNone, access);
+  }
+
   /**
    * @description Handles delete
    * @param records `List<SObject>`

@@ -29,6 +29,15 @@ public with sharing class StubbedUnitOfWorkDML implements IUnitOfWorkDML {
     return saveResultsSvc.upsertResults(records, this.isSuccess);
   }
 
+  public List<Database.UpsertResult> onUpsert(
+    List<SObject> records,
+    SObjectField externalIdField,
+    Boolean allOrNone,
+    AccessLevel access
+  ) {
+    return onUpsert(records, allOrNone, access);
+  }
+
   /**
    * @description Returns either an empty list or throws a DmlException
    * @param records `List<SObject>`

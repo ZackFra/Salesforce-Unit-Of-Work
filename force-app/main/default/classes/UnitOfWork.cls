@@ -70,6 +70,18 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     this.dirtyRecords.add(cleanRecord);
   }
 
+  public virtual void registerClean(
+    SObject record,
+    SObjectField externalIdField
+  ) {
+    if (record == null) {
+      throw new IllegalArgumentException('Record must not be null');
+    }
+    DirtyRecord cleanRecord = new DirtyRecord(record, null, externalIdField);
+    this.dirtyRecordByRecord.put(record, cleanRecord);
+    this.dirtyRecords.add(cleanRecord);
+  }
+
   /**
    * @description Register a deleted recod
    * @param record `SObject`
@@ -177,18 +189,46 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       return wr;
     }
 
-    List<SObject> upsertableRecords = new List<SObject>();
+    // TODO: Group by external id for upserts
+    Map<SObjectField, List<SObject>> upsertableRecordsByExternalId = new Map<SObjectField, List<SObject>>();
     for (DirtyRecord dirtyRecord : this.dirtyRecords) {
-      upsertableRecords.add(dirtyRecord.record);
+      if (
+        upsertableRecordsByExternalId.containsKey(dirtyRecord.externalIdField)
+      ) {
+        upsertableRecordsByExternalId.get(dirtyRecord.externalIdField)
+          .add(dirtyRecord.record);
+      } else {
+        upsertableRecordsByExternalId.put(
+          dirtyRecord.externalIdField,
+          new List<SObject>{ dirtyRecord.record }
+        );
+      }
     }
 
-    List<Database.UpsertResult> upsertResults = this.dml.onUpsert(
-      upsertableRecords,
-      allOrNone,
-      access
-    );
+    List<Database.UpsertResult> upsertResults = new List<Database.UpsertResult>();
+    for (
+      SObjectField externalIdField : upsertableRecordsByExternalId.keySet()
+    ) {
+      if (externalIdField == null) {
+        upsertResults.addAll(
+          this.dml.onUpsert(
+            upsertableRecordsByExternalId.get(externalIdField),
+            allOrNone,
+            access
+          )
+        );
+      } else {
+        upsertResults.addAll(
+          this.dml.onUpsert(
+            upsertableRecordsByExternalId.get(externalIdField),
+            externalIdField,
+            allOrNone,
+            access
+          )
+        );
+      }
+    }
     this.dirtyRecords = getNextBatch(upsertResults);
-
     wr.upsertResults.addAll(upsertResults);
 
     return commitUpserts(wr);
@@ -219,7 +259,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     List<DirtyRecord> dirtyChildRecords = dirtyParentRecord.children;
     List<DirtyRecord> newDirtyParentRecords = new List<DirtyRecord>();
     for (DirtyRecord childRecord : dirtyChildRecords) {
-      childRecord.record.put(childRecord.field, newRecord.Id);
+      childRecord.record.put(childRecord.relatedToField, newRecord.Id);
       newDirtyParentRecords.add(childRecord);
     }
     return newDirtyParentRecords;
@@ -240,14 +280,15 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       dirtyChildRecord = new DirtyRecord(childRecord, field);
       this.dirtyRecordByRecord.put(childRecord, dirtyChildRecord);
     } else {
-      dirtyChildRecord.field = field;
+      dirtyChildRecord.relatedToField = field;
       this.dirtyRecords.remove(this.dirtyRecords.indexOf(dirtyChildRecord));
     }
     return dirtyChildRecord;
   }
 
   private Boolean isRegisteredToParentRecord(DirtyRecord dirtyChildRecord) {
-    return (dirtyChildRecord != null && dirtyChildRecord.field != null);
+    return (dirtyChildRecord != null &&
+    dirtyChildRecord.relatedToField != null);
   }
 
   private DirtyRecord getDirtyParentRecord(SObject parentRecord) {

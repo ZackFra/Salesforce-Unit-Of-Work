@@ -6,7 +6,8 @@
  */
 public class DirtyRecord {
   public SObject record;
-  public SObjectField field;
+  public SObjectField relatedToField;
+  public SObjectField externalIdField;
   public List<DirtyRecord> children = new List<DirtyRecord>();
 
   /**
@@ -14,9 +15,18 @@ public class DirtyRecord {
    * @param record `SObject`
    * @param field `SObjectField`
    */
-  public DirtyRecord(SObject record, SObjectField field) {
+  public DirtyRecord(
+    SObject record,
+    SObjectField relatedToField,
+    SObjectField externalIdField
+  ) {
     this.record = record;
-    this.field = field;
+    this.relatedToField = relatedToField;
+    this.externalIdField = externalIdField;
+  }
+
+  public DirtyRecord(SObject record, SObjectField relatedToField) {
+    this(record, relatedToField, null);
   }
 
   /**
@@ -24,6 +34,6 @@ public class DirtyRecord {
    * @param record `SObject`
    */
   public DirtyRecord(SObject record) {
-    this.record = record;
+    this(record, null);
   }
 }
