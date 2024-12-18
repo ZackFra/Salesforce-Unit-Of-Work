@@ -83,6 +83,9 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
     if (record == null) {
       throw new IllegalArgumentException('Record must not be null');
     }
+    if (externalIdField == null) {
+      throw new IllegalArgumentException('External Id Field must not be null');
+    }
     DirtyRecord cleanRecord = new DirtyRecord(record, null, externalIdField);
     this.dirtyRecordByRecord.put(record, cleanRecord);
     this.dirtyRecords.add(cleanRecord);

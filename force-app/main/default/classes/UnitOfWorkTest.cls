@@ -407,6 +407,20 @@ private class UnitOfWorkTest {
     } catch (IllegalArgumentException e) {
       // expected
     }
+
+    try {
+      uow.registerClean(null, Account.Name);
+      Assert.fail('Expected exception to be thrown');
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    try {
+      uow.registerClean(acct, null);
+      Assert.fail('Expected exception to be thrown');
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
     Test.stopTest();
   }
 
