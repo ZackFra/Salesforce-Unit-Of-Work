@@ -198,49 +198,74 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
       return wr;
     }
 
-    // TODO: Group by external id for upserts
-    Map<SObjectField, List<SObject>> upsertableRecordsByExternalId = new Map<SObjectField, List<SObject>>();
+    TupleMap upsertableRecordsByTuple = new TupleMap();
     for (DirtyRecord dirtyRecord : this.dirtyRecords) {
-      if (
-        upsertableRecordsByExternalId.containsKey(dirtyRecord.externalIdField)
-      ) {
-        upsertableRecordsByExternalId.get(dirtyRecord.externalIdField)
-          .add(dirtyRecord.record);
-      } else {
-        upsertableRecordsByExternalId.put(
-          dirtyRecord.externalIdField,
-          new List<SObject>{ dirtyRecord.record }
-        );
-      }
+      upsertableRecordsByTuple = groupRecordByTuple(
+        dirtyRecord,
+        upsertableRecordsByTuple
+      );
     }
 
     List<Database.UpsertResult> upsertResults = new List<Database.UpsertResult>();
-    for (
-      SObjectField externalIdField : upsertableRecordsByExternalId.keySet()
-    ) {
-      if (externalIdField == null) {
-        upsertResults.addAll(
-          this.dml.onUpsert(
-            upsertableRecordsByExternalId.get(externalIdField),
-            allOrNone,
-            access
-          )
-        );
-      } else {
-        upsertResults.addAll(
-          this.dml.onUpsert(
-            upsertableRecordsByExternalId.get(externalIdField),
-            externalIdField,
-            allOrNone,
-            access
-          )
-        );
-      }
+    for (Tuple externalIdKey : upsertableRecordsByTuple.keySet()) {
+      upsertResults.addAll(
+        upsertRecordsByTuple(externalIdKey, upsertableRecordsByTuple)
+      );
     }
     this.dirtyRecords = getNextBatch(upsertResults);
     wr.upsertResults.addAll(upsertResults);
 
     return commitUpserts(wr);
+  }
+
+  private List<Database.UpsertResult> upsertRecordsByTuple(
+    Tuple externalIdKey,
+    TupleMap upsertableRecordsByTuple
+  ) {
+    List<SObject> groupedRecords = (List<SObject>) upsertableRecordsByTuple.get(
+      externalIdKey
+    );
+    if (externalIdKey == null) {
+      return this.dml.onUpsert(groupedRecords, this.allOrNone, this.access);
+    } else {
+      SObjectField externalIdField = (SObjectField) externalIdKey.item2;
+      return this.dml.onUpsert(
+        groupedRecords,
+        externalIdField,
+        this.allOrNone,
+        this.access
+      );
+    }
+  }
+
+  private TupleMap groupRecordByTuple(
+    DirtyRecord dirtyRecord,
+    TupleMap upsertableRecordsByTuple
+  ) {
+    Tuple externalIdKey = buildTuple(dirtyRecord);
+    if (upsertableRecordsByTuple.containsKey(externalIdKey)) {
+      List<SObject> groupedRecords = (List<SObject>) upsertableRecordsByTuple.get(
+        externalIdKey
+      );
+      groupedRecords.add(dirtyRecord.record);
+    } else {
+      upsertableRecordsByTuple.put(
+        externalIdKey,
+        new List<SObject>{ dirtyRecord.record }
+      );
+    }
+    return upsertableRecordsByTuple;
+  }
+
+  private Tuple buildTuple(DirtyRecord dirtyRecord) {
+    Tuple externalIdKey = null;
+    if (dirtyRecord.externalIdField != null) {
+      externalIdKey = new Tuple(
+        dirtyRecord.record.getSObjectType(),
+        dirtyRecord.externalIdField
+      );
+    }
+    return externalIdKey;
   }
 
   private List<DirtyRecord> getNextBatch(

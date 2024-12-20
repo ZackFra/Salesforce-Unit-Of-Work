@@ -20,11 +20,10 @@ private class UnitOfWorkTest {
   @IsTest
   static void ensureCleanInsertIsSuccessful() {
     Account acct = new Account(Name = 'Test Account');
-    UnitOfWork uow = new UnitOfWork();
-
-    uow.registerClean(acct);
 
     Test.startTest();
+    UnitOfWork uow = new UnitOfWork();
+    uow.registerClean(acct);
     uow.commitWork();
     Test.stopTest();
 
@@ -45,18 +44,22 @@ private class UnitOfWorkTest {
 
     acct.AccountNumber = '12345';
 
-    UnitOfWork uow = new UnitOfWork(false);
-
     Test.startTest();
+    UnitOfWork uow = new UnitOfWork(false);
+    uow.registerClean(acct);
     uow.commitWork();
     Test.stopTest();
 
-    Integer numberOfAccounts = [
-      SELECT COUNT()
+    Account updatedAccount = [
+      SELECT AccountNumber
       FROM Account
     ];
 
-    Assert.areEqual(1, numberOfAccounts, 'Expected only one account');
+    Assert.areEqual(
+      '12345',
+      updatedAccount.AccountNumber,
+      'Expected AccountNumber to be changed'
+    );
   }
 
   @IsTest
