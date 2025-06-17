@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ruleset name="Minimal Scan"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        These are the minimal set of rules we will trigger as part of the CI validation before commit. 
+        We can edit this list and add future rules to make validation more strict
+    </description>
+
+    <!-- Custom Rules -->
+
+    <rule ref="scripts/pmd/category/apex/apex_custom_rules.xml">
+    </rule>
+    <rule ref="scripts/pmd/category/xml/xml_custom_rules.xml">
+    </rule>
+
+    <!-- Include all standard Apex rules, except Documentation, Code Style and Design. This can be broke down into specific rules we want to add into the ruleset -->
+    <rule ref="category/apex/bestpractices.xml">
+    </rule>
+    <rule ref="category/apex/errorprone.xml">
+    </rule>
+    <rule ref="category/apex/performance.xml">
+    </rule>
+    <rule ref="category/apex/security.xml">
+    </rule>
+
+</ruleset>

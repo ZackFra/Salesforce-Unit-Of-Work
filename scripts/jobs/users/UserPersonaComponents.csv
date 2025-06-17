@@ -1,0 +1,3 @@
+﻿PersonaName,ProfileID,UserRoleID,LocaleSidKey,LanguageLocaleKey,EmailEncodingKey,TimezoneSidKey,Department,UserPermissionsMarketingUser,UserPermissionsKnowledgeUser,UserPermissionsInteractionUser,UserPermissionsSupportUser,PublicGroups,QueueAssignment,PermSetGroups,PermSets,Non-Prod Voice Groups,Non-Prod Chat Queues,DelegatedAdminGroup
+Salesforce CRM Developer,{PROFILE-System Administrator},,en_AU,en_US,UTF-8,Australia/Sydney,,FALSE,FALSE,FALSE,FALSE,,,,Nebula Logger: Admin;HPP View Encrypted Data;Health Cloud Foundation;OmniStudio Admin,,,
+Salesforce CRM QA,{PROFILE-System Administrator},,en_AU,en_US,UTF-8,Australia/Sydney,,FALSE,FALSE,FALSE,FALSE,,,,Nebula Logger: Admin,,,

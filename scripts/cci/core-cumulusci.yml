@@ -1,0 +1,749 @@
+minimum_cumulusci_version: '4.3.0'
+project:
+    package:
+        api_version: '63.0'
+    source_format: sfdx
+    dependency_resolutions:
+        preproduction: include_beta
+        production: latest_release
+    git:
+        default_branch: main
+        prefix_feature: feature/
+        prefix_beta: beta/
+        prefix_release: release/
+        push_prefix_sandbox: 'Sandbox orgs: '
+        push_prefix_production: 'Production orgs: '
+    test:
+        name_match: '%Test%'
+
+sources:
+    P0T:
+        azure_devops: https://dev.azure.com/rupeshj0701/rj-sf-p0-trigger-framework
+    P0SA:
+        azure_devops: https://dev.azure.com/rupeshj0701/rj-sf-p0-skip-auto
+
+orgs:
+    scratch:
+        snapshot:
+            config_file: orgs/snapshot.json
+            days: 7
+        build:
+            config_file: orgs/build.json
+            days: 1
+            namespaced: 'true'
+        dev:
+            config_file: orgs/dev.json
+            days: 7
+            namespaced: 'true'
+        snapshot_nmspc:
+            config_file: orgs/snapshot.json
+            days: 7
+            namespaced: 'true'
+        feature:
+            config_file: orgs/feature.json
+            days: 7
+        beta:
+            config_file: orgs/beta.json
+            days: 1
+        release:
+            config_file: orgs/release.json
+            days: 1
+
+tasks:
+
+    github_package_data:
+        description: Look up 2gp package dependencies for a version id recorded in a commit status.
+        class_path: scripts.cci.tasks.getPackageDataFromCommitStatusWithCommit.GetPackageDataFromCommitStatusWithCommit
+        group: GitHub
+
+    run_tests:
+        options:
+            required_org_code_coverage_percent: 85
+            required_per_class_code_coverage_percent: 85
+            retry_failures:
+                - "unable to obtain exclusive access to this record"
+                - "UNABLE_TO_LOCK_ROW"
+                - "connection was cancelled here"
+            retry_always: True
+
+    # During development, when we create new packages that depend on previous ones, the previous ones need to be picked dynamically based on the latest beta instead of latest release. We can change this later to latest_release 
+    create_package_version:
+        options:
+            resolution_strategy: preproduction 
+
+    create_snapshot:
+        description: My custom task to create a snapshot with a dynamic name, composed by a snapshot code and a date
+        class_path: scripts.cci.tasks.newSnapshot.NewSnapshot
+        group: Snapshots
+        options: 
+            command: org create snapshot
+
+    delete_snapshot:
+        description: My custom task to delete a snapshot with a dynamic name, composed by a snapshot code and a date
+        class_path: scripts.cci.tasks.deleteSnapshot.DeleteSnapshot
+        group: Snapshots
+        options: 
+            command: sf org delete snapshot --no-prompt
+
+    run_Jest_tests:
+        description: Run Jest tests if JS files are present in /lwc folders
+        class_path: scripts.cci.tasks.runJestTests.runJestTests
+        group: Salesforce
+        options:
+            command: 'sf force lightning lwc test run'
+            source_path: './force-app/'
+
+    run_flow_coverage:
+        description: Runs coverage for flows and returns error if coverage not met
+        class_path: scripts.cci.tasks.runFlowCoverage.runFlowCoverage
+        group: Salesforce
+        options:
+            run_tests_type: 'ALL_LOCAL_TESTS'
+            src_path: './force-app/main/default'
+            script_path: './scripts/flow-coverage/calculateFlowCoverage.sh'
+            namespace: $project_config.project__package__namespace
+            flow_individual_coverage: '100'
+
+    run_pmd:
+        description: Run PMD scan for Apex and XML files
+        class_path: scripts.cci.tasks.runPMDTests.RunPMDTests
+        group: Salesforce
+        options:
+            format: 'table'
+
+    run_eslint:
+        description: Run a ESLint scan for JS files
+        class_path: scripts.cci.tasks.runESLintTests.RunESLintTests
+        group: Salesforce
+        options:
+            format: 'table'
+
+    run_sfdmu:
+        description: Run SFDMU command to import/export data
+        class_path: scripts.cci.tasks.runSFDMU.RunSfdmu
+        group: Data Operations
+        options:
+            command: 'sfdmu run --noprompt --nowarnings'
+            export_json_path: './scripts/sfdmu/export.json'
+
+    run_sf_flow_scan:
+        description: Run sf flow scan and generate JUnit XML.
+        class_path: scripts.cci.tasks.flowScan.SfFlowScan
+        group: Salesforce
+        options:
+            src_path: "./force-app/"          # You can override at runtime
+            destination_path: "./test-results-flowScan"  # You can override at runtime
+            configuration_file: "./scripts/flow-scan/.flow-scanner.json"  # You can override at runtime
+
+    create_test_package_version:
+        description: Create a new TEST package version
+        class_path: scripts.cci.tasks.createTestPackageVersion.CreateTestPackageVersion
+        group: Test Package Version Management
+        options:
+            package_type: Managed
+            namespace: $project_config.project__package__namespace
+            real_package_name: $project_config.project__package__name
+            package_name_suffix: Test
+            version_base: 'latest_github_release'
+            version_type: patch
+            skip_validation: False
+            ancestor_id: 'latest_github_release'
+            install_key: 'TelstraHealthHorizonTest'
+            resolution_strategy: production
+
+    get_latest_test_package_id:
+        description: Get the latest package version ID from a package name, excluding packages skipping validations
+        class_path: scripts.cci.tasks.getLatestPacakgeVersionId.GetLatestPacakgeVersionId
+        group: Test Package Version Management
+        options:
+            package_name: $project_config.project__package__name Test
+            released: true
+
+    json_to_dotenv:
+        description: Get all environment variables from a target JSON file and generates a .env file that can be used to set up the environment variables for the deployment
+        class_path: scripts.cci.tasks.JsonToDotEnv.JsonToDotEnv
+        group: Salesforce Metadata
+        options:
+            json_path: orgs/deploySettings/sf-deploy-settings.json
+            env_path: .env
+    
+    define_org:
+        class_path: scripts.cci.tasks.defineParam.DefineParam
+        group: Utilities
+        description: "Defines and returns an org identifier so it can be used in further steps from the flow from it is called"
+
+    define_snapshot_name:
+        class_path: scripts.cci.tasks.defineParam.DefineParam
+        group: Utilities
+        description: "Defines and returns a Snapshot Name so it can be used in further steps from the flow from it is called"
+
+    deploy_tenant:
+        class_path: scripts.cci.tasks.deployTenant.DeployTenant
+        group: Salesforce Metadata
+        options:
+            path_deploy_settings: orgs/deploySettings/sf-deploy-settings.json
+            path_tenant_template: unpackaged/post/tenant
+
+    execute_anon_dyn:
+        class_path: scripts.cci.tasks.apexAnonDyn.ApexAnonDyn
+        group: Salesforce
+        description: "Execute anonymous apex via the tooling api, with option to define placeholders connected with environment variables"
+        options:
+            path_deploy_settings: orgs/deploySettings/sf-deploy-settings.json
+
+    execute_anon_tenant:
+        class_path: scripts.cci.tasks.apexAnonTenant.ApexAnonTenant
+        group: Salesforce
+        description: "Execute anonymous apex via the tooling api dynamically for each tenant with placeholders defined per tenant"
+        options:
+            path_deploy_settings: orgs/deploySettings/sf-deploy-settings.json
+            path: unpackaged/apex/file.apex
+
+flows:
+    #the standard flows below are overwritten mainly to create placeholder to apply PRE installation steps
+    create_org_snapshot:
+        group: Org Snapshot Management
+        description: Creates an org snapshot
+        steps:
+            0: 
+                task: define_snapshot_name
+            10:
+                flow: dependencies
+                options:
+                    update_dependencies:
+                        resolution_strategy: preproduction
+                    deploy_pre:
+                        path: unpackaged/pre
+            30:
+                task: delete_snapshot
+                options:
+                    packageSnapshotCode: ^^define_snapshot_name.value
+                    relativeDays: 
+            31:
+                task: create_snapshot
+                options:
+                    packageSnapshotCode: ^^define_snapshot_name.value
+                    relativeDays: 
+            32:
+                task: delete_snapshot
+                options:
+                    packageSnapshotCode: ^^define_snapshot_name.value
+                    relativeDays: 0
+            33:
+                task: create_snapshot
+                options:
+                    packageSnapshotCode: ^^define_snapshot_name.value
+                    relativeDays: 0
+            40:
+                task: delete_snapshot
+                options:
+                    packageSnapshotCode: ^^define_snapshot_name.value
+                    relativeDays: -2
+
+    dev_org:
+        steps:
+            1.5:
+                flow: pre_config_dev
+    install_2gp_commit:
+        steps:
+            2.5:
+                flow: pre_config_qa
+    install_regression:
+        steps:
+            2: 
+                task: None # OVerwrite install_regression because we still do not have a latest version available
+            1.5:
+                flow: pre_config_regression
+    install_prod:
+        steps:
+            2: 
+                task: None # This flow overwrite should be removed once we will released our first PROD package version for this package. For now install_prod will just skip prod package installation
+                options:
+                    update_dependencies:
+                        resolution_strategy: preproduction
+                    deploy_pre:
+                        path: unpackaged/pre
+            1.5:
+                flow: pre_config_managed
+
+    th_load_env_vars:
+        group: Post-Install Configuration
+        description: Loads environment variables from deploy org settings JSON file
+        steps:
+            0.1:
+                task: json_to_dotenv
+            0.2:
+                task: command
+                options:
+                    command: 'bash -c "source .env"'
+
+    th_update_admin_profile:
+        group: Post-Install Configuration
+        description: Updates the admin profile with the package namespace
+        steps:
+            1:
+                task: update_admin_profile
+            2:
+                task: update_admin_profile
+                options:
+                    package_xml: ./scripts/cci/update_admin_profile/standard-objects/package.xml
+
+    #Task to be overwritten by the package to load data from package dependencies
+    th_load_all_dependencies_data:
+        group: Sample Data
+        description: Loads ALL data to target org (Business and Setting) from dataset folders, dynamically picking the org folders from package dependencies
+        steps:
+            0: 
+                task: define_org
+
+    #Task to be overwritten by the package to load package data
+    th_load_all_package_data:
+        group: Sample Data
+        description: Loads ALL data to target org (Business and Setting) from dataset folders, dynamically picking the org folders for this package
+        steps:
+            0: 
+                task: define_org
+            50:
+                task: load_sample_data
+
+    #Task to be overwritten by the package to define all postunpackaged metadata from all package dependencies
+    th_deploy_all_dependencies_post_unpackaged:
+        group: Post-Install Configuration
+        description: Deploys the metadata from all post-deployments from all package dependencies
+        steps:
+            0: 
+                task: define_org
+            
+
+    #Task to be overwritten by the package to load their own metadata
+    th_deploy_all_post_unpackaged:
+        group: Post-Install Configuration
+        description: Deploys the metadata from all post-deployments in unpackaged/post folders, and dynamic tenant-specific metadata for this package
+        steps:
+            0: 
+                task: define_org
+            50:
+                task: deploy_post
+                options:
+                    path: unpackaged/org-level/post/default/src
+
+    #Task to deploy all pre deployment steps from all package dependencies
+    th_deploy_all_dependencies_pre_unpackaged:
+        group: Pre-Install Configuration
+        description: Deploys the metadata from all pre-deployments from all package dependencies
+        steps:
+            0: 
+                task: define_org
+
+    #Task to be overwritten by the package to load their own metadata
+    th_deploy_all_pre_unpackaged:
+        group: Pre-Install Configuration
+        description: Deploys the metadata from all pre-deployments in unpackaged/pre folders for this package
+        steps:
+            0: 
+                task: define_org
+
+    release_2gp_minor_beta:
+        group: Main Package Version Management
+        description: Creates a new pre-release (Beta) package version on top of the latest release as a MINOR enhancement
+        steps: 
+            1: 
+                flow: release_2gp_beta
+                options:
+                    create_package_version:
+                        version_type: minor
+
+    release_2gp_major_beta:
+        group: Main Package Version Management
+        description: Creates a new pre-release (Beta) package version on top of the latest release as a MAJOR enhancement
+        steps: 
+            1: 
+                flow: release_2gp_beta
+                options:
+                    create_package_version:
+                        version_type: major
+
+    release_2gp_patch_beta:
+        group: Main Package Version Management
+        description: Creates a new pre-release (Beta) package version on top of the latest release as a PATCH enhancement
+        steps:  
+            1: 
+                flow: release_2gp_beta
+                options:
+                    create_package_version:
+                        version_type: patch
+
+    release_test_package_released:
+        group: Test Package Version Management
+        description: Creates a new released TEST (fake) package version on top of the latest release as a PATCH enhancement
+        steps:  
+            1: 
+                task: create_test_package_version
+                options:
+                    package_type: Managed
+                    namespace: $project_config.project__package__namespace
+                    real_package_name: $project_config.project__package__name
+                    package_name_suffix: Test
+                    version_base: 'latest_github_release'
+                    version_type: patch
+                    skip_validation: False
+                    ancestor_id: 'latest_github_release'
+                    install_key: 'TelstraHealthHorizonTest'
+                    resolution_strategy: production
+            2: 
+                task: promote_package_version
+                options: 
+                    promote_dependencies: false
+                    version_id: ^^create_test_package_version.subscriber_package_version_id
+                    install_key: 'TelstraHealthHorizonTest'
+
+    install_test_package_released:
+        group: Test Package Version Management
+        description: Installs latest RELEASED TEST (fake) package version along with all the dependencies
+        steps:  
+            0.1:
+                task: get_latest_test_package_id 
+                options:
+                    packlage_name: $project_config.project__package__name Test
+                    released: true
+            0.2: 
+                task: github_package_data
+                options:
+                    context: $project_config.project__git__2gp_context
+                    version_id: ^^get_latest_test_package_id.version_id
+            1: 
+                task: update_dependencies
+                options:
+                    resolution_strategy: production
+                    dependencies: ^^github_package_data.dependencies
+            2: 
+                task: deploy_pre
+                options:
+                        path: unpackaged/pre
+            3: 
+                flow: pre_config_regression
+            4:
+                task: install_managed
+                options:
+                     version: ^^get_latest_test_package_id.version_id
+                     password: 'TelstraHealthHorizonTest'
+            5: 
+                flow: config_regression
+
+    run_static_code_scan:
+        group: Testing & Validation
+        description: Runs PMD, ESLint and Flow Static Code Scans
+        steps:
+            0:
+                task: command
+                options:
+                    command: 'npm install'
+            1:
+                task: run_pmd
+                options:
+                    format: 'junit'
+            4:
+                task: run_eslint
+                options:
+                    format: 'junit'
+            5: 
+                task: run_sf_flow_scan
+
+    run_all_tests_locally:
+        group: Testing & Validation
+        description: Runs PMD, ESLint, Flow Static, Jest, Apex Test Classes (for Apexz class coverage and Flow coverage) Code Scans
+        steps:
+            0:
+                task: command
+                options:
+                    command: 'npm install'
+            10:
+                task: run_pmd
+                options:
+                    format: 'csv'
+            11:
+                task: run_eslint
+                options:
+                    format: 'csv'
+            12:
+                task: run_sf_flow_scan
+            20:
+                task: command
+                options:
+                    command: 'rm -rf test-results-apex/ && mkdir test-results-apex/'
+            30: 
+                task: run_tests
+                options:
+                    json_output: 'test-results-apex/apex-report.json'
+            31:
+                task: run_flow_coverage
+                options:
+                    run_tests_type: 'NO_TESTS'
+            32: 
+                task: run_Jest_tests
+                options:
+                    json_output: 'test-results-apex/apex-report.json'
+
+    #This standard flow is defined here to be overwritten to add more POST deployment step after the package installation / deployment
+    #Before adding any new step, please run "cci flow info config_dev" to understand which steps are already defined, and avoid duplicating the sequence number
+    #This flow needs to remain global for all packages. Packages will be able to overwrite th_load_all_package_data step to load their own data and th_deploy_post to deploy their own metadata
+    config_dev:
+        steps:
+            0:
+                task: define_org
+                options:
+                    input: dev
+            0.1:
+                flow: th_load_env_vars
+            1: 
+                flow: th_deploy_all_dependencies_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            2:
+                flow: th_update_admin_profile
+            90:
+                flow: th_load_all_dependencies_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            90.1:
+                flow: th_load_all_package_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This standard flow is defined here to be overwritten to add more POST deployment step after the package installation / deployment
+    #Before adding any new step, please run "cci flow info config_qa" to understand which steps are already defined, and avoid duplicating the sequence number
+    #This flow needs to remain global for all packages. Packages will be able to overwrite th_load_all_package_data step to load their own data and th_deploy_post to deploy their own metadata
+    config_qa:
+        steps:
+            0:
+                task: define_org
+                options:
+                    input: qa
+            0.1:
+                flow: th_load_env_vars
+            1: 
+                flow: th_deploy_all_dependencies_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            2:
+                flow: th_update_admin_profile
+            90:
+                flow: th_load_all_dependencies_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            90.1:
+                flow: th_load_all_package_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This standard flow is defined here to be overwritten to add more POST deployment step after the package installation / deployment
+    #Before adding any new step, please run "cci flow info config_regression" to understand which steps are already defined, and avoid duplicating the sequence number
+    #This flow needs to remain global for all packages. Packages will be able to overwrite th_load_all_package_data step to load their own data and th_deploy_post to deploy their own metadata
+    config_regression:
+        steps:
+            0:
+                task: define_org
+                options:
+                    input: regression
+            0.1:
+                flow: th_load_env_vars
+            1: 
+                flow: th_deploy_all_dependencies_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            2:
+                flow: th_update_admin_profile
+            90:
+                flow: th_load_all_dependencies_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            90.1:
+                flow: th_load_all_package_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This standard flow is defined here to be overwritten to add more POST deployment step after the package installation / deployment
+    #Before adding any new step, please run "cci flow info config_managed" to understand which steps are already defined, and avoid duplicating the sequence number
+    #This flow needs to remain global for all packages. Packages will be able to overwrite th_load_all_package_data step to load their own data and th_deploy_post to deploy their own metadata
+    config_managed:
+        steps:
+            0:
+                task: define_org
+                options:
+                    input: managed
+            0.1:
+                flow: th_load_env_vars
+            1: 
+                flow: th_deploy_all_dependencies_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_post_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            2:
+                flow: th_update_admin_profile
+            90:
+                flow: th_load_all_dependencies_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            90.1:
+                flow: th_load_all_package_data
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This custom flow is used to define any PRE deployment step before the package installation / deployment
+    #Before adding any new step, please run "cci flow info pre_config_dev" to understand which steps are already defined, and avoid duplicating the sequence number
+    pre_config_dev:
+        group: Pre-Install Configuration
+        description: Executes PRE steps in target org before the package installation / deployment.
+        steps: 
+            0:
+                task: define_org
+                options:
+                    input: dev
+            0.1:
+                flow: th_load_env_vars
+            1.0: 
+                flow: th_deploy_all_dependencies_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This custom flow is used to define any PRE deployment step before the package installation / deployment
+    #Before adding any new step, please run "cci flow info pre_config_qa" to understand which steps are already defined, and avoid duplicating the sequence number
+    pre_config_qa:
+        group: Pre-Install Configuration
+        description: Executes PRE steps in target org before the package installation / deployment.
+        steps: 
+            0:
+                task: define_org
+                options:
+                    input: qa
+            0.1:
+                flow: th_load_env_vars
+            1.0: 
+                flow: th_deploy_all_dependencies_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This custom flow is used to define any PRE deployment step before the package installation / deployment
+    #Before adding any new step, please run "cci flow info pre_config_regression" to understand which steps are already defined, and avoid duplicating the sequence number
+    pre_config_regression:
+        group: Pre-Install Configuration
+        description: Executes PRE steps in target org before the package installation / deployment.
+        steps: 
+            0:
+                task: define_org
+                options:
+                    input: regression
+            0.1:
+                flow: th_load_env_vars
+            1.0: 
+                flow: th_deploy_all_dependencies_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #This custom flow is used to define any PRE deployment step before the package installation / deployment
+    #Before adding any new step, please run "cci flow info pre_config_managed" to understand which steps are already defined, and avoid duplicating the sequence number
+    pre_config_managed:
+        group: Pre-Install Configuration
+        description: Executes PRE steps in target org before the package installation / deployment.
+        steps: 
+            0:
+                task: define_org
+                options:
+                    input: managed
+            0.1:
+                flow: th_load_env_vars
+            1.0: 
+                flow: th_deploy_all_dependencies_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+            1.1: 
+                flow: th_deploy_all_pre_unpackaged
+                options:
+                    define_org:
+                        input: ^^define_org.value
+
+    #We are adding flo coverage check by querying which flow elements are civered and which ones are not. We use the apex test execution from the flow itself
+    ci_feature_2gp:
+        steps:
+            3.0:
+                task: command
+                options:
+                    command: 'rm -rf test-results-apex/ && mkdir test-results-apex/'
+            3.1: 
+                task: run_tests
+                options:
+                    junit_output: 'test-results-apex/apex-report.xml'
+            4:
+                task: run_flow_coverage
+                options:
+                    run_tests_type: 'NO_TESTS'
+            5:
+                task: run_Jest_tests
+
+    #We are adding flo coverage check by querying which flow elements are civered and which ones are not. We use the apex test execution from the flow itself
+    ci_beta:
+        steps:
+            2.0:
+                task: command
+                options:
+                    command: 'rm -rf test-results-apex/ && mkdir test-results-apex/'
+            2.1: 
+                task: run_tests
+                options:
+                    junit_output: 'test-results-apex/apex-report.xml'
+            4:
+                task: run_flow_coverage
+                options:
+                    run_tests_type: 'NO_TESTS'
+            5:
+                task: run_Jest_tests

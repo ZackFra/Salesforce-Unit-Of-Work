@@ -1,0 +1,1173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Salesforce Coding Standards" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>Salesforce Coding Standards</description>
+
+    <!-- More examples at https://github.com/rsoesemann/unhappy-soup/blob/master/ruleset.xml -->
+
+    <!-- 
+        ends-with(pmd:fileName(), '.cls-meta.xml')
+    -->
+
+    <!-- 
+    #######################################################
+    # Permission Sets (Object Permissions)
+    #######################################################
+    -->
+
+    <rule name="PermSetObjectModifyAllRecords" language="xml" message="MESSAGE: Exposing a high privilege permission (modifyAllRecords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If this high privilege permission is approved for use, create a new permission set with ONLY this High Privilege Permissions in it. Name your perm set ending with the words 'High Privilege Permissions'. Example: Original Permission set name: 'Service Console'. New permission set name: 'Service Console High Privilege Permissions' (which only contains the high Privilege Object Delete or System Perms)" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        objectPermissions/modifyAllRecords/text[matches(@Text,'true')]
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')  
+                        and not(pmd:fileName() = 'HPP_Batch_Job_Scheduler_Admin.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetObjectViewAllRecords" language="xml" message="MESSAGE: Exposing a high privilege permission (viewAllRecords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If this high privilege permission is approved for use, create a new permission set with ONLY this High Privilege Permissions in it. Name your perm set ending with the prefix 'HPP'. Example: Original Permission set name: 'Service Console'. New permission set name: 'HPP Service Console' (which only contains the high Privilege Object Delete or System Perms)" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        objectPermissions/viewAllRecords/text[matches(@Text,'true')]
+                        and not(pmd:fileName() = 'HPP_View_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')  
+                        and not(pmd:fileName() = 'HPP_Batch_Job_Scheduler_Admin.permissionset-meta.xml')   
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetObjectAllowDelete" language="xml" message="MESSAGE: Exposing a high privilege permission (allowDelete) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If this high privilege permission is approved for use, create a new permission set with ONLY this High Privilege Permissions in it. Name your perm set ending with the words 'High Privilege Permissions'. Example: Original Permission set name: (Service Console). New permission set name: (Service Console High Privilege Permissions) which only contains the high Privilege Object Delete or System Permissions" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        objectPermissions/allowDelete/text[matches(@Text,'true')]
+                        and not(pmd:fileName() = 'HPP_Batch_Job_Scheduler_Admin.permissionset-meta.xml')   
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetObjectNotHighPrivilege" language="xml" message="MESSAGE: Adding field permissions, tabs or other non High Privilege Permissions to Object High Privilege Permissions sets is not allowed. HOW TO FIX: Remove these (fieldPermissions,recordTypeVisibilities,tabSettings,userPermissions) from the High Privilege Permission Set and add them to a standard permission set. If you have a (userPermissions) which is deemed High Privilege, please add a permission set with the name (Permission User Permissio) to your permission set group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        (fieldPermissions/enabled/text[matches(@Text,'true')] or
+                        recordTypeVisibilities/visible/text[matches(@Text,'true')] or
+                        tabSettings/visibility/text[matches(@Text,'true')] or
+                        (
+                            userPermissions[
+                                enabled/text[matches(@Text,'true')]
+                                and not (
+                                     name/text[matches(@Text,'AuthorApex')]
+                                    or name/text[matches(@Text,'CustomizeApplication')]
+                                    or name/text[matches(@Text,'ManageAuthProviders')]
+                                    or name/text[matches(@Text,'ManageBusinessHourHolidays')]
+                                    or name/text[matches(@Text,'ManageCertificates')]
+                                    or name/text[matches(@Text,'ManageContentPermissions')]
+                                    or name/text[matches(@Text,'ManageCustomReportTypes')]
+                                    or name/text[matches(@Text,'ManageDataCategories')]
+                                    or name/text[matches(@Text,'ManageDataCategories')]
+                                    or name/text[matches(@Text,'ManageEncryptionKeys')]
+                                    or name/text[matches(@Text,'ManageNetworks')]
+                                    or name/text[matches(@Text,'ManagePasswordPolicies')]
+                                    or name/text[matches(@Text,'ManageSandboxes')]
+                                    or name/text[matches(@Text,'ManageSharing')]
+                                    or name/text[matches(@Text,'ManageTwoFactor')]
+                                    or name/text[matches(@Text,'ModifyMetadata')]
+                                    or name/text[matches(@Text,'PasswordNeverExpires')]
+                                    or name/text[matches(@Text,'ApiEnabled')]
+                                    or name/text[matches(@Text,'DataExport')]
+                                    or name/text[matches(@Text,'DeleteFieldHistory')]
+                                    or name/text[matches(@Text,'DeleteFieldHistoryArchive')]
+                                    or name/text[matches(@Text,'EditReadonlyFields')]
+                                    or name/text[matches(@Text,'ExportReport')]
+                                    or name/text[matches(@Text,'ModifyAllData')]
+                                    or name/text[matches(@Text,'QueryAllFiles')]
+                                    or name/text[matches(@Text,'ViewAllData')]
+                                    or name/text[matches(@Text,'ViewAllProfiles')]
+                                    or name/text[matches(@Text,'ViewAllUsers')]
+                                    or name/text[matches(@Text,'ViewEncryptedData')]
+                                    or name/text[matches(@Text,'ViewRoles')]
+                                    or name/text[matches(@Text,'ViewSetup')]
+                                    or name/text[matches(@Text,'ViewUserPII')]
+                                    or name/text[matches(@Text,'AssignPermissionSets')]
+                                    or name/text[matches(@Text,'DelegatedTwoFactor')]
+                                    or name/text[matches(@Text,'ManageInternalUsers')]
+                                    or name/text[matches(@Text,'ManageLoginAccessPolicies')]
+                                    or name/text[matches(@Text,'ManageLoginAccessPolicies')]
+                                    or name/text[matches(@Text,'ManagePartners')]
+                                    or name/text[matches(@Text,'ManageProfilesPermissionsets')]
+                                    or name/text[matches(@Text,'ManageRoles')]
+                                    or name/text[matches(@Text,'ManageSessionPermissionSets')]
+                                    or name/text[matches(@Text,'ManageUsers')]
+                                    or name/text[matches(@Text,'ResetPasswords')]
+                                    or name/text[matches(@Text,'ManageHealthCheck')]
+                                    or name/text[matches(@Text,'BulkApiHardDelete')]
+                                    or name/text[matches(@Text,'ManageRemoteAccess')]
+                                    or name/text[matches(@Text,'ManageCustomPermissions')]
+                                    or name/text[matches(@Text,'ManageInteraction')]
+                                    or name/text[matches(@Text,'ManageIpAddresses')]
+                                    or name/text[matches(@Text,'BypassMFAForUiLogins')]
+                                    or name/text[matches(@Text,'RunFlow')]
+                                    or name/text[matches(@Text,'ViewAllCustomSettings')]
+                                    or name/text[matches(@Text,'ViewAllForeignKeyNames')] 
+                                    or name/text[matches(@Text,'ClientSecretRotation')] 
+
+                                    or name/text[matches(@Text,'ManageTerritories')] 
+                                    or name/text[matches(@Text,'ManageTranslation')]
+                                    or name/text[matches(@Text,'RunReports')] 
+                                    or name/text[matches(@Text,'FreezeUsers')] 
+                                    or name/text[matches(@Text,'MonitorLoginHistory')] 
+                                    or name/text[matches(@Text,'ResetPasswords')] 
+                                    or name/text[matches(@Text,'ViewDataCategories')] 
+                                    or name/text[matches(@Text,'AssignTopics')] 
+                                    or name/text[matches(@Text,'ConnectOrgToEnvironmentHub')] 
+                                    or name/text[matches(@Text,'CreateCustomizeDashboards')] 
+                                    or name/text[matches(@Text,'CreateCustomizeFilters')] 
+                                    or name/text[matches(@Text,'CreateCustomizeReports')] 
+                                    or name/text[matches(@Text,'CreateDashboardFolders')] 
+                                    or name/text[matches(@Text,'CreateReportFolders')] 
+                                    or name/text[matches(@Text,'CreateTopics')] 
+                                    or name/text[matches(@Text,'DeleteTopics')] 
+                                    or name/text[matches(@Text,'EditEvent')] 
+                                    or name/text[matches(@Text,'EditMyDashboards')] 
+                                    or name/text[matches(@Text,'EditMyReports')] 
+                                    or name/text[matches(@Text,'EditPublicFilters')] 
+                                    or name/text[matches(@Text,'EditPublicTemplates')] 
+                                    or name/text[matches(@Text,'EditTask')] 
+                                    or name/text[matches(@Text,'EditTopics')] 
+                                    or name/text[matches(@Text,'ManageCategories')] 
+                                    or name/text[matches(@Text,'ManageDashbdsInPubFolders')] 
+                                    or name/text[matches(@Text,'ViewPublicDashboards')] 
+                                    or name/text[matches(@Text,'ManageReportsInPubFolders')] 
+                                    or name/text[matches(@Text,'OverrideForecasts')] 
+                                    or name/text[matches(@Text,'TransferAnyEntity')] 
+                                    or name/text[matches(@Text,'UseTeamReassignWizards')] 
+                                    or name/text[matches(@Text,'ViewAllForecasts')] 
+                                    or name/text[matches(@Text,'ViewDataLeakageEvents')] 
+                                    or name/text[matches(@Text,'ViewEventLogFiles')] 
+                                    or name/text[matches(@Text,'ViewPlatformEvents')] 
+                                    or name/text[matches(@Text,'ViewPublicReports')] 
+                                    or name/text[matches(@Text,'ViewDataCategories')] 
+                                    or name/text[matches(@Text,'ManageQuotas')] 
+                                    or name/text[matches(@Text,'ViewHealthCheck')] 
+                                    )
+                            ]
+                        ))
+                        and (starts-with(pmd:fileName() ,'HPP_') and not(pmd:fileName() = 'HPP_Batch_Job_Scheduler_Admin.permissionset-meta.xml'))
+                    ] 
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetGroupNativePermissionSets" language="xml" message="MESSAGE: Adding the following standard permission sets to a permission set group (Example: force__PermissionExample etc) bypasses our security scanning and is not allowed. HOW TO FIX: Clone the standard permission set and create a custom one, and assign this to your permission set group instead of the standard permission set. Eg. UFM Industries Visit." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSetGroup/permissionSets/text[
+                            contains(@Text, '__') 
+                            or matches(@Text,'force__PermissionExample')
+                        ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 
+    #######################################################
+    # Profiles
+    #######################################################
+    -->
+
+
+    <rule name="ProfilesUnauthorizedAttributes" language="xml" message="MESSAGE: The following attributes (classAccesses, fieldPermissions, objectPermissions, pageAccesses, tabVisibilities, userPermissions) should be added to permission sets instead of profiles. See https://medium.com/salesforce-architects/how-to-build-a-user-security-model-12db130b3182 for more information. HOW TO FIX: Remove the affected attribute in the file and line that is mentioned above, then add this permission to a permission set for the desired persona." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //Profile/classAccesses | //Profile/fieldPermissions | //Profile/objectPermissions | //Profile/pageAccesses | //Profile/tabVisibilities | //Profile/userPermissions  
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+    
+    <rule name="ProfilesDefaultApplicationVisibilitiesAccess" language="xml" message="MESSAGE: applicationVisibilities that are not default should be added to permission sets instead of profiles. See https://medium.com/salesforce-architects/how-to-build-a-user-security-model-12db130b3182 for more information. HOW TO FIX: Remove the affected 'non default' applicationVisibilities in the file and line that is mentioned above, then add this to a permission set for the desired persona." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                       //Profile/applicationVisibilities[not(./default) or not(./default/text[matches(normalize-space(@Text), 'true')])]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="ProfilesDefaultRecordTypeAccess" language="xml" message="MESSAGE: recordTypeVisibilities that are not default should be added to permission sets instead of profiles. See https://medium.com/salesforce-architects/how-to-build-a-user-security-model-12db130b3182 for more information. HOW TO FIX: Remove the affected 'non default' record visibiliy in the file and line that is mentioned above, then add this to a permission set for the desired persona." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //Profile/recordTypeVisibilities[not(./default) or not(./default/text[matches(normalize-space(@Text), 'true')])]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 
+    #######################################################
+    # Custom Fields
+    #######################################################
+    -->
+
+    <rule name="CustomFieldMustContainDescription" language="xml" message="MESSAGE: Custom fields must have a meaningful description. HOW TO FIX: Update your custom field with a description." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                //CustomField[not(.//description) and contains(pmd:fileName(),'__c.field-meta.xml')]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 
+    #######################################################
+    # Groups    
+    #######################################################
+    -->
+
+
+    <rule name="GroupsAccessUsingHierarchies" language="xml" message="MESSAGE: Grant access using hierarchies shouldn't be ticked when committing group metadata, because it is NOT supported by the metadata api" class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //Group[
+                        doesIncludeBosses/text[matches(@Text,'true')]
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 
+    #######################################################
+    # Permission Sets (System Permissions) for High Privileged Session
+    #######################################################
+    -->
+
+    <rule name="PermSetAuthorApex" language="xml" message="MESSAGE: Exposing a high privilege permission (AuthorApex) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'AuthorApex')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Author_Apex.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetCustomizeApplication" language="xml" message="MESSAGE: Exposing a high privilege permission (Customize Application) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'CustomizeApplication')] and enabled/text[matches(@Text,'true')]]
+                         and not(pmd:fileName() = 'HPP_Customize_Application.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageAuthProviders" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageAuthProviders) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageAuthProviders')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageBusinessHourHolidays" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageBusinessHourHolidays) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageBusinessHourHolidays')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Business_Hours.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageCertificates" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageCertificates) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageCertificates')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Certificates.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageContentPermissions" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageContentPermissions) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageContentPermissions')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_ContentPermission.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageCustomReportTypes" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageCustomReportTypes) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageCustomReportTypes')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_CustomReportTypes.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageDataCategories" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageDataCategories) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageDataCategories')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_DataCategories.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageEncryptionKeys" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageEncryptionKeys) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageEncryptionKeys')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_EncryptionKeys.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageNetworks" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageNetworks) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageNetworks')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Networks.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')  
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManagePasswordPolicies" language="xml" message="MESSAGE: Exposing a high privilege permission (ManagePasswordPolicies) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManagePasswordPolicies')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_PasswordPolicies.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageSandboxes" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageSandboxes) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageSandboxes')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Sandboxes.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageSharing" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageSharing) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission (Permission_Manage_Sharing) to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageSharing')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Sharing.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')  
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageTwoFactor" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageTwoFactor) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageTwoFactor')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetModifyMetadata" language="xml" message="MESSAGE: Exposing a high privilege permission (ModifyMetadata) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ModifyMetadata')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_Metadata.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Author_Apex.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetPasswordNeverExpires" language="xml" message="MESSAGE: Exposing a high privilege permission (PasswordNeverExpires) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'PasswordNeverExpires')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Password_NoExpiry.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetApiEnabled" language="xml" message="MESSAGE: Exposing a high privilege permission (ApiEnabled) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ApiEnabled')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_API_Enabled.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Session_PermissionSets.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetDataExport" language="xml" message="MESSAGE: Exposing a high privilege permission (DataExport) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'DataExport')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Data_Export.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetDeleteFieldHistory" language="xml" message="MESSAGE: Exposing a high privilege permission (DeleteFieldHistory) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'DeleteFieldHistory')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Delete_FieldHistory.permissionset-meta.xml')
+                         and not(pmd:fileName() = 'HPP_Delete_FieldHistory_Archive.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetDeleteFieldHistoryArchive" language="xml" message="MESSAGE: Exposing a high privilege permission (DeleteFieldHistoryArchive) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'DeleteFieldHistoryArchive')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Delete_FieldHistory_Archive.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetEditReadonlyFields" language="xml" message="MESSAGE: Exposing a high privilege permission (EditReadonlyFields) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'EditReadonlyFields')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Edit_ReadOnly_Fields.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetExportReport" language="xml" message="MESSAGE: Exposing a high privilege permission (ExportReport) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission (Permission_Export_Reports) to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ExportReport')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Export_Reports.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetModifyAllData" language="xml" message="MESSAGE: Exposing a high privilege permission (ModifyAllData) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ModifyAllData')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetQueryAllFiles" language="xml" message="MESSAGE: Exposing a high privilege permission (QueryAllFiles) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'QueryAllFiles')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Query_All_Files.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewAllData" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewAllData) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewAllData')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Query_All_Files.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewAllProfiles" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewAllProfiles) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewAllProfiles')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_All_Profiles.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetClientSecretRotation" language="xml" message="MESSAGE: Exposing a high privilege permission (Client Secret Rotation) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ClientSecretRotation')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Client_Secret_rotation.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewAllUsers" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewAllUsers) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewAllUsers')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_All_Users.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewEncryptedData" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewEncryptedData) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewEncryptedData')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_Encrypted_Data.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewRoles" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewRoles) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewRoles')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_Roles.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Author_Apex.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Customize_Application.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Business_Hours.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_CustomReportTypes.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_DataCategories.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Flows.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_Metadata.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Query_All_Files.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Reset_Passwords.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_View_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_View_Setup.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_View_Manage_HealthCheck.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewSetup" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewSetup) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewSetup')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_Setup.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Author_Apex.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Customize_Application.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Business_Hours.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_CustomReportTypes.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_DataCategories.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Flows.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Modify_Metadata.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Query_All_Files.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Reset_Passwords.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_View_All_Data.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_View_Manage_HealthCheck.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewUserPII" language="xml" message="MESSAGE: Exposing a high privilege permission (ViewUserPII) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewUserPII')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_User_PII.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetAssignPermissionSets" language="xml" message="MESSAGE: Exposing a high privilege permission (AssignPermissionSets) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'AssignPermissionSets')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Assign_PermissionSets.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetDelegatedTwoFactor" language="xml" message="MESSAGE: Exposing a high privilege permission (DelegatedTwoFactor) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'DelegatedTwoFactor')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Delegated_Two_Factor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageInternalUsers" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageInternalUsers) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageInternalUsers')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Internal_Users.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageLoginAccessPolicies" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageLoginAccessPolicies) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageLoginAccessPolicies')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Login_Access_Policies.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManagePartners" language="xml" message="MESSAGE: Exposing a high privilege permission (ManagePartners) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set (Permission_Manage_Partners) to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManagePartners')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Partners.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageProfilesPermissionsets" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageProfilesPermissionsets) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageProfilesPermissionsets')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Profiles_PermissionSets.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml') 
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageRoles" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageRoles) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageRoles')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Roles.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml') 
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')           
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageSessionPermissionSets" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageSessionPermissionSets) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageSessionPermissionSets')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Session_PermissionSets.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageUsers" language="xml" message="MESSAGE: Exposing a high privilege permission (ManageUsers) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageUsers')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetResetPasswords" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ResetPasswords')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Reset_Passwords.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewManageHealthCheck" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageHealthCheck')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_Manage_HealthCheck.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetBulkApiHardDelete" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'BulkApiHardDelete')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_BulkAPI_Delete.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+     <rule name="PermSetManageConnectedApps" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageRemoteAccess')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Connected_Apps.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetManageCustomPermissions" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageCustomPermissions')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Custom_Permissions.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Customize_Application.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+     <rule name="PermSetManageFlows" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageInteraction')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_Flows.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+     <rule name="PermSetManageIpAddresses" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ManageIpAddresses')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Manage_IP_Addresses.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Auth_Providers.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_TwoFactor.permissionset-meta.xml')
+                        and not(pmd:fileName() = 'HPP_Manage_Users.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetBypassMFAForUiLogins" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'BypassMFAForUiLogins')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_No_MFA.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetRunFlows" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'RunFlow')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Run_Flows.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewAllCustomSettings" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewAllCustomSettings')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_All_Custom_Settings.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetViewLookupRecordNames" language="xml" message="MESSAGE: Exposing a high privilege permission (ResetPasswords) to non-authorized users. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        userPermissions[name/text[matches(@Text,'ViewAllForeignKeyNames')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_View_All_Lookup_RecordNames.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetSkipAllTriggers" language="xml" message="MESSAGE: Exposing a high privilege permission to skip all the apex triggers. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        customPermissions[name/text[matches(@Text,'Skip_All_Triggers')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Skip_All_Triggers.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetSkipAllRecordFlowTriggers" language="xml" message="MESSAGE: Exposing a high privilege permission to skip all the record flow triggers. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        customPermissions[name/text[matches(@Text,'Skip_All_Record_Triggered_Flows')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Skip_All_Record_Triggered_Flows.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="PermSetSkipAlValidationRules" language="xml" message="MESSAGE: Exposing a high privilege permission to skip all validation rules. HOW TO FIX: Remove the affected attribute in the file that is mentioned. If you require this high privilege permission, speak with BAU about adding a Permission Set with this High Privilege Permission to your Persona Permission Set Group." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //PermissionSet[
+                        customPermissions[name/text[matches(@Text,'Skip_All_Validation_Rules')] and enabled/text[matches(@Text,'true')]]
+                        and not(pmd:fileName() = 'HPP_Skip_All_Validation_Rules.permissionset-meta.xml')
+                    ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- 
+    #######################################################
+    # SECURITY SETTINGS
+    #######################################################
+    -->
+
+    <rule name="SecuritySettingsPasswordPoliciesComplexity" language="xml" message="MESSAGE: It is a high security risk for Security > Password Policies to have &quot;No Restriction&quot; as the &quot;Password complexity requirement&quot;. HOW TO FIX: Goto Security > Password Policies and update 'No restriction' to something else." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                //SecuritySettings/passwordPolicies/complexity/text[ matches(@Text,'NoRestriction') ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="SecuritySettingsPasswordPoliciesMinimumPasswordLength" language="xml" message="MESSAGE: Passwords which are less than 13 characters are not secure. HOW TO FIX: Goto Security > Password Policies and update the minimum password length to 13 or more." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                    //SecuritySettings/passwordPolicies/minimumPasswordLength/text[number(@Text) < 13]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="SecuritySettingsPasswordPoliciesExpiration" language="xml" message="MESSAGE: Passwords need to expire at least every 1 year for security. HOW TO FIX: Goto Security > Password Policies and update the password policy to at least &quot;One year&quot;." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                //SecuritySettings/passwordPolicies/expiration/text[matches(@Text,'Never')]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="SecuritySettingsSessionTimeout" language="xml" message="MESSAGE: Allowing access to an inactive session for more than 12 hours is a security risk. HOW TO FIX: Goto Security > Session Settings and update the &quot;Timeout Value&quot; to less than 12 hours." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+                //SecuritySettings/sessionSettings/sessionTimeout/text[ matches(@Text,'TwentyFourHours') or matches(@Text,'TwelveHours') ]
+                ]]>                </value>
+            </property>
+        </properties>
+    </rule>
+
+</ruleset>

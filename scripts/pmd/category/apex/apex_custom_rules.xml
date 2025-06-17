@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ruleset name="Metadata Apex Custom Category"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+       These are Apex custom rules 
+    </description>
+
+    <!-- Your rules will come here -->
+
+    <!-- CUSTOM APEX RULES -->
+
+    <rule name="ApexClassAvoidProductionDebugLogs" language="apex" message="MESSAGE: Avoid leaving System.debug() statements in code as they negatively influence performance. HOW TO FIX: Remove System.debug statements from the class that is mentioned." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+                        //MethodCallExpression[@FullMethodName='System.Debug' or @FullMethodName='system.debug' or @FullMethodName='System.debug' or @FullMethodName='system.Debug'][count(*)=2]
+                    ]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule name="ApexClassAvoidPackageVersions" language="apex" message="MESSAGE: Avoid packageVersions in apex class meta files. HOW TO FIX: Remove packageVersions tags (and everything in between) from your apex class metadata file." class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+                        //ApexClass/packageVersions
+                    ]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+
+</ruleset>

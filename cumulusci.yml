@@ -1,0 +1,26 @@
+minimum_cumulusci_version: '4.3.0.dev0'
+project:
+    name: rj-sf-p0-unit-of-work
+    package:
+        name: rj-sf-p0-unit-of-work
+        namespace: rup
+        api_version: '63.0'
+    git:
+        default_branch: 'master'
+    source_format: sfdx
+
+tasks:
+    robot:
+        options:
+            suites: robot/rj-sf-p0-unit-of-work/tests
+            options:
+                outputdir: robot/rj-sf-p0-unit-of-work/results
+
+    robot_testdoc:
+        options:
+            path: robot/rj-sf-p0-unit-of-work/tests
+            output: robot/rj-sf-p0-unit-of-work/doc/rj-sf-p0-unit-of-work_tests.html
+
+    run_tests:
+        options:
+            required_org_code_coverage_percent: 75

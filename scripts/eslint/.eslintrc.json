@@ -1,0 +1,65 @@
+{
+    "root": true,
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "requireConfigFile": false,
+      "babelOptions": {
+        "parserOpts": {
+          "plugins": [
+            "classProperties",
+            ["decorators", { "decoratorsBeforeExport": false }]
+          ]
+        }
+      }
+    },
+    "plugins": ["@lwc/lwc"],
+    "extends": [],
+    "rules": {
+      "@lwc/lwc/consistent-component-name": "error",
+      "@lwc/lwc/no-api-reassignments": "error",
+      "@lwc/lwc/no-deprecated": "error",
+      "@lwc/lwc/no-document-query": "error",
+      "@lwc/lwc/no-attributes-during-construction": "error",
+      "@lwc/lwc/no-disallowed-lwc-imports": "error",
+      "@lwc/lwc/no-leading-uppercase-api-name": "error",
+      "@lwc/lwc/valid-api": "error",
+      "@lwc/lwc/valid-track": "error",
+      "@lwc/lwc/valid-wire": "error",
+      "@lwc/lwc/ssr-no-restricted-browser-globals": "error",
+      "@lwc/lwc/ssr-no-unsupported-properties": "error",
+      "@lwc/lwc/ssr-no-node-env": "error",
+      "@lwc/lwc/valid-graphql-wire-adapter-callback-parameters": "error",
+      "@lwc/lwc/ssr-no-host-mutation-in-connected-callback": "error",
+      "@lwc/lwc/ssr-no-static-imports-of-user-specific-scoped-modules": "error",
+      "@lwc/lwc/ssr-no-form-factor": "error",
+      "@lwc/lwc/no-async-operation": "error",
+      "@lwc/lwc/no-dupe-class-members": "error",
+      "@lwc/lwc/no-inner-html": "error",
+      "@lwc/lwc/no-template-children": "error",
+      "@lwc/lwc/no-leaky-event-listeners": "error",
+      "@lwc/lwc/prefer-custom-event": "error",
+      "@lwc/lwc/ssr-no-unsupported-node-api": "error"
+    },
+    "moduleNameMapper": {
+      "^lightning/actions$": "<rootDir>/scripts/eslint/jest-mocks/lightning/actions",
+      "^lightning/confirm$": "<rootDir>/scripts/eslint/jest-mocks/lightning/confirm",
+      "^lightning/modal$": "<rootDir>/scripts/eslint/jest-mocks/lightning/modal",
+      "^lightning/modalHeader$": "<rootDir>/scripts/eslint/jest-mocks/lightning/modalHeader",
+      "^lightning/modalBody$": "<rootDir>/scripts/eslint/jest-mocks/lightning/modalBody",
+      "^lightning/modalFooter$": "<rootDir>/scripts/eslint/jest-mocks/lightning/modalFooter",
+      "^lightning/platformShowToastEvent$": "<rootDir>/scripts/eslint/jest-mocks/lightning/platformShowToastEvent",
+      "^lightning/navigation$": "<rootDir>/scripts/eslint/jest-mocks/lightning/navigation",
+      "^lightning/uiRelatedListApi$": "<rootDir>/scripts/eslint/jest-mocks/lightning/uiRelatedListApi",
+      "^c/logger$": "<rootDir>/scripts/eslint/jest-mocks/c/logger",
+      "^lightning/empApi$": "<rootDir>/scripts/eslint/jest-mocks/lightning/empApi",
+      "^lightning/messageService$": "<rootDir>/scripts/eslint/jest-mocks/lightning/messageService",
+      "^@salesforce/community/basePath$": "<rootDir>/scripts/eslint/jest-mocks/@salesforce/community/basePath",
+      "^@salesforce/client/formFactor$": "<rootDir>/scripts/eslint/jest-mocks/@salesforce/client/formFactor.js",
+      "^lightning/refresh$":"<rootDir>/scripts/eslint/jest-mocks/lightning/refresh",
+      "^lightning/uiRecordApi$":"<rootDir>/scripts/eslint/jest-mocks/lightning/uiRecordApi",
+      "^lightning/flow$": "<rootDir>/scripts/eslint/jest-mocks/lightning/flow",
+      "^lightning/toast$": "<rootDir>/scripts/eslint/jest-mocks/lightning/toast",
+      "^lightning/flowSupport$":"<rootDir>/scripts/eslint/jest-mocks/lightning/flowSupport.js",
+      "^lightning/platformWorkspaceApi$":"<rootDir>/scripts/eslint/jest-mocks/lightning/platformWorkspaceApi"
+    }
+  }

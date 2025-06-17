@@ -1,0 +1,63 @@
+{
+  "rules":   {
+    "APIVersion":{
+      "severity": "error",
+      "expression": "===63"
+    },
+    "CopyAPIName": {
+      "severity": "error"
+    },
+    "DMLStatementInLoop": {
+      "severity": "error"
+    },
+    "DuplicateDMLOperation": {
+      "severity": "error"
+    },
+    "FlowName": {
+      "severity": "error",
+      "expression":"[A-Za-z0-9]+_[A-Za-z0-9]+" 
+    },
+    "HardcodedId": {
+      "severity": "error"
+    },
+    "InactiveFlow": {
+      "severity": "error"
+    },
+    "FlowDescription": {
+      "severity": "error"
+    },
+    "MissingFaultPath": {
+      "severity": "error"
+    },
+    "MissingNullHandler": {
+      "severity": "error"
+    },
+    "ProcessBuilder": {
+      "severity": "error"
+    },
+    "SOQLQueryInLoop": {
+      "severity": "error"
+    },
+    "UnconnectedElement": {
+      "severity": "error"
+    },
+    "UnusedVariable": {
+      "severity": "error"
+    },
+    "UnsafeRunningContext": {
+      "severity": "error"
+    },
+    "SameRecordFieldUpdates": {
+      "severity": "error"
+    },
+    "TriggerOrder": {
+      "severity": "error"
+    },
+    "CyclomaticComplexity": {
+      "severity": "error",
+      "threshold":25
+    }
+  },
+  "exceptions": {
+  }
+}
