@@ -23,7 +23,6 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @param dml `IUnitOfWorkDML`
    */
   @TestVisible
-  @namespaceAccessible
   protected UnitOfWork(
     Boolean allOrNone,
     AccessLevel access,
