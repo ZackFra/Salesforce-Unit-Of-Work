@@ -3,6 +3,7 @@
  * @author Zackary Frazier
  * @since 12/13/2024
  */
+@namespaceAccessible
 public interface IUnitOfWork {
   /**
    * @description Registers a record to be inserted or updated
