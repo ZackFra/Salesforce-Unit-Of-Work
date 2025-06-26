@@ -3,6 +3,7 @@
  * @author Zackary Frazier
  * @since 12/13/2024
  */
+@namespaceAccessible
 public without sharing virtual class UnitOfWork implements IUnitOfWork {
   List<SObject> deletedRecords = new List<SObject>();
   List<SObject> undeletedRecords = new List<SObject>();
@@ -37,6 +38,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @description Constructor all or none
    * @param allOrNone `Boolean`
    */
+  @namespaceAccessible
   public UnitOfWork(Boolean allOrNone) {
     this(allOrNone, AccessLevel.USER_MODE, new UnitOfWorkDML());
   }
@@ -46,6 +48,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @param allOrNone `Boolean`
    * @param access `AccessLevel`
    */
+  @namespaceAccessible
   public UnitOfWork(Boolean allOrNone, AccessLevel access) {
     this(allOrNone, access, new UnitOfWorkDML());
   }
@@ -53,6 +56,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
   /**
    * @description Base constructor
    */
+  @namespaceAccessible
   public UnitOfWork() {
     this(true, AccessLevel.USER_MODE, new UnitOfWorkDML());
   }
@@ -61,6 +65,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @description Register an inserted or updated record
    * @param record `SObject`
    */
+  @namespaceAccessible
   public virtual void registerClean(SObject record) {
     if (record == null) {
       throw new IllegalArgumentException('Record must not be null');
@@ -76,6 +81,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @param externalIdField `SObjectField`
    * @exception IllegalArgumentException
    */
+  @namespaceAccessible
   public virtual void registerClean(
     SObject record,
     SObjectField externalIdField
@@ -95,6 +101,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @description Register a deleted recod
    * @param record `SObject`
    */
+  @namespaceAccessible
   public virtual void registerDelete(SObject record) {
     if (record == null) {
       throw new IllegalArgumentException('Record must not be null');
@@ -108,6 +115,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @description Register an undeleted recod
    * @param record `SObject`
    */
+  @namespaceAccessible
   public virtual void registerUndelete(SObject record) {
     if (record == null) {
       throw new IllegalArgumentException('Record must not be null');
@@ -124,6 +132,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @param field `SObjectField`
    * @return  `Relationship`
    */
+  @namespaceAccessible
   public virtual void registerDirty(
     SObject parentRecord,
     SObject childRecord,
@@ -150,6 +159,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
    * @return `WorkResults`
    * @throws Any errors
    */
+  @namespaceAccessible
   public virtual WorkResults commitWork() {
     try {
       WorkResults wr = new WorkResults();
@@ -165,6 +175,7 @@ public without sharing virtual class UnitOfWork implements IUnitOfWork {
   /**
    * @description Reset the savepoint to the current state
    */
+  @namespaceAccessible
   public virtual void resetSavepoint() {
     Database.releaseSavepoint(this.sp);
     this.sp = Database.setSavepoint();

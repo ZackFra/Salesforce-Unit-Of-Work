@@ -43,3 +43,58 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+
+.vscode/
+.pmdCache
+
+# CCI
+.cci
+/src.orig
+/src
+datasets/
+orgs/
+cumulusci.yml
+
+# Python
+*.pyc
+__pycache__
+
+# Robot Framework results
+robot/
+
+# Editors
+*.sublime-project
+*.sublime-workspace
+.vscode
+.idea
+.project
+.settings
+
+# Ignore everything in scripts/ as it comes from template
+scripts/**
+
+# Allow navigation into the cci and tasks folders
+!scripts/cci/
+!scripts/cci/tasks/
+
+# Unignore only .py files directly inside scripts/cci/tasks/
+!scripts/cci/tasks/*.py
+
+# Re-ignore any subfolders inside scripts/cci/tasks/
+scripts/cci/tasks/*/
+
+#Ignore all logs
+test-results-jest/
+test-results-pmd/
+test-results-eslint/
+test-results-apex/
+test-results-flowCoverage/
+test-results-flowScan/
+
+#Ignore deploy settings files
+*.env
+
+#Ignore temp deployment files
+unpackaged/post/temp/
+.github/
+scripts/cci/tasks/
